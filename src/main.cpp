@@ -1,6 +1,12 @@
-#include "main.hpp"
+#include "game.hpp"
 
 int main()
 {
-    std::cout << "Hello World!" << std::endl;
+    Game game;
+    while (game.getIsRunning())
+    {
+        game.update();
+    }
+    game.~Game();
+    return 0;
 }

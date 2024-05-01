@@ -7,7 +7,7 @@ OBJ = $(patsubst src/%.cpp, bin/o/%.o, $(SRC))
 TARGET = bin/solitaire
 
 # Default target
-all: clean $(TARGET)
+all: $(TARGET)
 
 # Create the directories
 bin/o/:
@@ -16,13 +16,13 @@ bin/o/:
 bin/:
 	mkdir -p bin
 
-# Linking
-$(TARGET): $(OBJ)
-	$(CXX) $^ -o $@ $(INCLUDES)
-
 # Compilation
 bin/o/%.o: src/%.cpp | bin/o/
 	$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDES)
+
+# Linking
+$(TARGET): $(OBJ)
+	$(CXX) $^ -o $@ $(INCLUDES)
 
 # Clean up
 clean:
