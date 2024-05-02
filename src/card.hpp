@@ -11,7 +11,8 @@ public:
     int getValue();
     bool getIsFaceUp();
     bool getIsRed();
-
+    string getSuitString();
+    
     void setIsFaceUp(bool isFaceUp);
 private:
     Suit suit;

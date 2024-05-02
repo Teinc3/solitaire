@@ -5,6 +5,7 @@
 
 #include "common.hpp"
 #include "card.hpp"
+#include "board.hpp"
 
 class Game
 {
@@ -21,9 +22,10 @@ public:
 
     void update();
 
-    Card* (*getDeck())[52];
+    Card* (*getDeck())[MAX_CARDS];
     bool getIsRunning();
 private:
-    Card* deck[52];
+    Board* board;
+    Card* deck[MAX_CARDS];
     bool isRunning;
 };

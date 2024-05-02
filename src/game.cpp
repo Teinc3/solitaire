@@ -1,7 +1,10 @@
 #include "game.hpp"
 
 Game::Game()
-{
+{   
+    this->isRunning = false;
+    this->board = new Board();
+
     // Initialize the game
     gameInit();
 }
@@ -22,14 +25,19 @@ void Game::gameInit()
     // Initialize the game
     this->isRunning = true;
     srand(time(0));
+
     createCards();
     shuffleCards();
+
+    board->distributeCards(this->deck);
 }
 
 void Game::cleanUp()
 {
     // Clean up the game
     deleteCards();
+    delete this->board;
+    this->board = nullptr;
 }
 
 void Game::createCards()
@@ -50,6 +58,7 @@ void Game::deleteCards()
             this->deck[i] = nullptr;
         }
     }
+    std::cout << "Deleted all card objects" << std::endl;
 }
 
 void Game::shuffleCards()
@@ -66,12 +75,29 @@ void Game::shuffleCards()
 void Game::update()
 {
     // Update the game
-    std::cout << "Cards:" << std::endl;
-    for (int i = 0; i < 52; ++i) {
-        Suit suit = deck[i]->getSuit();
-        int value = deck[i]->getValue();
-        std::cout << i << ": " << suit << " " << value << std::endl;
+    std::cout << "Card Distribution:" << std::endl;
+    // Get cards from all stacks
+    for (int i = 0; i < STACK_COUNT; i++)
+    {   
+        int stackLength = this->board->getStackLength(i);
+        std::cout << "Stack " << i + 1 << "[" << stackLength << "] : ";
+        for (int j = 0; j < stackLength; j++)
+        {
+            Card* card = this->board->getCardFromStack(i, j);
+            std::cout << card->getSuit() << "-" << card->getValue() << " ";
+        }
+        std::cout << std::endl;
     }
+
+    // Get all Unused cards
+    std::cout << "Unused Cards: " << std::endl;
+    Card* card = this->board->getNextUnusedCard();
+    while (card != nullptr)
+    {
+        std::cout << card->getSuit() << "-" << card->getValue() << " ";
+        card = this->board->getNextUnusedCard();
+    }
+    std::cout << std::endl;
 
     // End the game
     isRunning = false;

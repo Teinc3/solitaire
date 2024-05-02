@@ -2,11 +2,16 @@
 
 int main()
 {
-    Game game;
-    while (game.getIsRunning())
+    Game* game = new Game();
+    
+    while (game->getIsRunning())
     {
-        game.update();
+        game->update();
     }
-    game.~Game();
+
+    std::cout << "Closing Game..." << std::endl;
+    delete game;
+    game = nullptr;
+
     return 0;
 }

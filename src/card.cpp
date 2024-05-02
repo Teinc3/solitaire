@@ -9,22 +9,39 @@ Card::Card(Suit suit, int value)
 
 Suit Card::getSuit()
 {
-    return suit;
+    return this->suit;
 }
 
 int Card::getValue()
 {
-    return value;
+    return this->value;
 }
 
 bool Card::getIsFaceUp()
 {
-    return isFaceUp;
+    return this->isFaceUp;
 }
 
 bool Card::getIsRed()
 {
-    return suit == Suit::HEARTS || suit == Suit::DIAMONDS;
+    return this->suit == Suit::HEARTS || this->suit == Suit::DIAMONDS;
+}
+
+string Card::getSuitString()
+{
+    switch (this->suit)
+    {
+    case Suit::DIAMONDS:
+        return "♦";
+    case Suit::CLUBS:
+        return "♣";
+    case Suit::HEARTS:
+        return "♥";
+    case Suit::SPADES:
+        return "♠";
+    default:
+        return "N/A";
+    }
 }
 
 void Card::setIsFaceUp(bool isFaceUp)
