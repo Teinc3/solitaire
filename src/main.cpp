@@ -1,15 +1,18 @@
 #include "game.hpp"
+#include "display.hpp"
 
 int main()
 {
     Game* game = new Game();
     
+    Display* display = game->getDisplay();
     while (game->getIsRunning())
     {
+        game->handleInput();
         game->update();
+        display->render();
     }
 
-    std::cout << "Closing Game..." << std::endl;
     delete game;
     game = nullptr;
 

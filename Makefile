@@ -2,6 +2,7 @@
 CXX = g++
 CXXFLAGS = -Wall -std=c++11
 INCLUDES = -Iinclude
+LIBS = -lncurses
 SRC = $(wildcard src/*.cpp)
 OBJ = $(patsubst src/%.cpp, bin/o/%.o, $(SRC))
 TARGET = bin/solitaire
@@ -22,7 +23,7 @@ bin/o/%.o: src/%.cpp | bin/o/
 
 # Linking
 $(TARGET): $(OBJ)
-	$(CXX) $^ -o $@ $(INCLUDES)
+	$(CXX) $^ -o $@ $(INCLUDES) $(LIBS)
 
 # Clean up
 clean:

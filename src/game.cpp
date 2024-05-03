@@ -1,13 +1,18 @@
 #include "game.hpp"
+#include "display.hpp"
 
 Game::Game()
 {   
-    this->isRunning = false;
     this->board = new Board();
     this->logic = new Logic(this->board);
+    this->display = new Display(this);
 
-    // Initialize the game
-    gameInit();
+    // Initialize the game loop
+    this->isRunning = true;
+    srand(time(0));
+
+    this->gameState = GameState::MAIN_MENU;
+    this->menuOption = MenuOption::NEW_GAME;
 }
 
 Game::~Game()
@@ -15,17 +20,15 @@ Game::~Game()
     cleanUp();
 }
 
-void Game::gameInit()
+void Game::createGame()
 {   
     // Reset the game
-    if (this->isRunning)
+    if (this->gameState >= GameState::PLAYING)
     {
         cleanUp();
     }
 
-    // Initialize the game
-    this->isRunning = true;
-    srand(time(0));
+    this->gameState = GameState::PLAYING;
 
     createCards();
     shuffleCards();
@@ -40,9 +43,11 @@ void Game::cleanUp()
 
     delete this->board;
     delete this->logic;
+    delete this->display;
 
     this->board = nullptr;
     this->logic = nullptr;
+    this->display = nullptr;
 }
 
 void Game::createCards()
@@ -63,7 +68,7 @@ void Game::deleteCards()
             this->deck[i] = nullptr;
         }
     }
-    std::cout << "Deleted all card objects" << std::endl;
+    //std::cout << "Deleted all card objects" << std::endl;
 }
 
 void Game::shuffleCards()
@@ -80,9 +85,9 @@ void Game::shuffleCards()
 void Game::update()
 {
     // Update the game
-    this->board->flipTopStackCards();
+    //this->board->flipTopStackCards();
 
-    std::cout << "Card Distribution:" << std::endl;
+    /* std::cout << "Card Distribution:" << std::endl;
     // Get cards from all stacks
     for (int i = 0; i < STACK_COUNT; i++)
     {   
@@ -104,13 +109,72 @@ void Game::update()
         std::cout << card->getSuit() << "-" << card->getValue() << " ";
         card = this->board->getNextUnusedCard();
     }
-    std::cout << std::endl;
+    std::cout << std::endl; */
+}
 
-    // End the game
-    this->isRunning = false;
+void Game::handleInput()
+{
+    nodelay(stdscr, TRUE);  // Make getch non-blocking (don't wait for input)
+    int ch = getch();  // Get the input from the user
+
+    if (ch == ERR)
+    {
+        return;
+    }
+
+    if (ch == 27) // If the first character is ESC
+    {
+        getch();  // Ignore the [
+        switch (getch()) {  // The third character determines the arrow key
+        case 'A':  // Up arrow
+            if (this->menuOption > MenuOption::NEW_GAME)
+            {
+                this->menuOption = static_cast<MenuOption>(this->menuOption - 1);
+            }
+            break;
+        case 'B':  // Down arrow
+            if (this->menuOption < MenuOption::QUIT)
+            {
+                this->menuOption = static_cast<MenuOption>(this->menuOption + 1);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    else if (ch == '\n') // Enter key
+    {
+        // Handle Enter key press here
+        switch (this->menuOption)
+        {
+        case MenuOption::NEW_GAME:
+            createGame();
+            break;
+        case MenuOption::QUIT:
+            this->isRunning = false;
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 bool Game::getIsRunning()
 {
     return this->isRunning;
+}
+
+Display* Game::getDisplay()
+{
+    return this->display;
+}
+
+GameState Game::getGameState()
+{
+    return this->gameState;
+}
+
+MenuOption Game::getMenuOption()
+{
+    return this->menuOption;
 }

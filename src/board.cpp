@@ -23,7 +23,7 @@ Board::Board()
 
 Board::~Board()
 {
-    std::cout << "Deleting Board" << std::endl;
+    //std::cout << "Deleting Board" << std::endl;
     cleanup();
 }
 
@@ -59,7 +59,7 @@ void Board::distributeCards(Card* deck[MAX_CARDS])
         }
     }
 
-    std::cout << "Distributed cards to the stacks" << std::endl;
+    //std::cout << "Distributed cards to the stacks" << std::endl;
 
     // Distribute the rest of the cards to the unusedCards vector
     for (; cardIndex < MAX_CARDS; cardIndex++)

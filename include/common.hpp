@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 
+#include <ncurses.h>
+
 using std::string;
 
 const int MAX_CARDS = 52;
@@ -20,4 +22,19 @@ enum Suit
     CLUBS,
     HEARTS,
     SPADES
+};
+
+enum MenuOption
+{
+    NEW_GAME = 1,
+    LOAD_SAVE_GAME,
+    INFO,
+    QUIT
+};
+
+enum GameState
+{
+    MAIN_MENU,
+    PLAYING,
+    GAME_MENU
 };
