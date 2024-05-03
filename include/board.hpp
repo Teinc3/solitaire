@@ -10,24 +10,28 @@ public:
     ~Board();
 
     void cleanup();
-    void distributeCards(Card* deck[MAX_CARDS]);
+    void distributeCards(Card* [MAX_CARDS]);
 
-    void addCardToStack(int stackIndex, Card* card);
-    Card* removeCardFromStack(int stackIndex);
-    void addCardToFoundation(int foundationIndex, Card* card);
-    Card* removeCardFromFoundation(int foundationIndex);
+    void flipTopStackCards();
 
-    int getStackLength(int stackIndex);
-    int getFoundationLength(int foundationIndex);
+    void addCardToStack(int, Card*);
+    Card* removeCardFromStack(int);
+    void addCardToFoundation(int, Card*);
+    Card* removeCardFromFoundation(int);
+    Card* removeUnusedCard();
 
-    Card* getCardFromStack(int stackIndex, int cardIndex);
-    Card* getCardFromFoundation(int foundationIndex, int cardIndex);
+    int getStackLength(int);
+    int getFoundationLength(int);
+
+    Card* getCardFromStack(int, int);
+    Card* getCardFromFoundation(int, int);
+    Card* getCurrentUnusedCard();
     Card* getNextUnusedCard();
     
 private:
+    int unusedCardIndex;
+
     std::vector<Card*>* stacks[STACK_COUNT];
     std::vector<Card*>* foundations[FOUNDATION_COUNT];
-    std::vector<Card*> unusedCards; // For the rest of the cards
-
-    int unusedCardIndex; // Tells us which card we are at in the unusedCards vector
+    std::vector<Card*> unusedCards;
 };

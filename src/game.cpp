@@ -4,6 +4,7 @@ Game::Game()
 {   
     this->isRunning = false;
     this->board = new Board();
+    this->logic = new Logic(this->board);
 
     // Initialize the game
     gameInit();
@@ -36,8 +37,12 @@ void Game::cleanUp()
 {
     // Clean up the game
     deleteCards();
+
     delete this->board;
+    delete this->logic;
+
     this->board = nullptr;
+    this->logic = nullptr;
 }
 
 void Game::createCards()
@@ -67,14 +72,16 @@ void Game::shuffleCards()
     for (int i = 51; i > 0; --i) {
         int j = rand() % (i + 1);
         Card* temp = this->deck[i];
-        deck[i] = deck[j];
-        deck[j] = temp;
+        this->deck[i] = this->deck[j];
+        this->deck[j] = temp;
     }
 }
 
 void Game::update()
 {
     // Update the game
+    this->board->flipTopStackCards();
+
     std::cout << "Card Distribution:" << std::endl;
     // Get cards from all stacks
     for (int i = 0; i < STACK_COUNT; i++)
@@ -100,15 +107,10 @@ void Game::update()
     std::cout << std::endl;
 
     // End the game
-    isRunning = false;
-}
-
-Card* (*Game::getDeck())[52]
-{
-    return &deck;
+    this->isRunning = false;
 }
 
 bool Game::getIsRunning()
 {
-    return isRunning;
+    return this->isRunning;
 }

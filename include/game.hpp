@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "card.hpp"
 #include "board.hpp"
+#include "logic.hpp"
 
 class Game
 {
@@ -22,10 +23,13 @@ public:
 
     void update();
 
-    Card* (*getDeck())[MAX_CARDS];
     bool getIsRunning();
+
 private:
-    Board* board;
-    Card* deck[MAX_CARDS];
     bool isRunning;
+
+    Card* deck[MAX_CARDS];
+    
+    Board* board;
+    Logic* logic;
 };

@@ -5,7 +5,7 @@
 class Card
 {
 public:
-    Card(Suit suit, int value);
+    Card(Suit, int);
 
     Suit getSuit();
     int getValue();
@@ -13,7 +13,8 @@ public:
     bool getIsRed();
     string getSuitString();
     
-    void setIsFaceUp(bool isFaceUp);
+    void setIsFaceUp(bool);
+    
 private:
     Suit suit;
     int value;

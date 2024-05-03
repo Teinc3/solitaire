@@ -68,10 +68,27 @@ void Board::distributeCards(Card* deck[MAX_CARDS])
     }
 }
 
+void Board::flipTopStackCards()
+{
+    for (int i = 0; i < STACK_COUNT; i++)
+    {
+        int stackLength = this->stacks[i]->size();
+        if (stackLength > 0)
+        {
+            Card* card = this->stacks[i]->at(stackLength - 1);
+            if (!card->getIsFaceUp())
+            {
+                card->setIsFaceUp(true);
+            }
+        }
+    }
+}
+
 void Board::addCardToStack(int stackIndex, Card* card)
 {
     // Add a card to a stack
     this->stacks[stackIndex]->push_back(card);
+    card->setIsFaceUp(true);
 }
 
 Card* Board::removeCardFromStack(int stackIndex)
@@ -82,10 +99,24 @@ Card* Board::removeCardFromStack(int stackIndex)
     return card;
 }
 
+Card* Board::removeUnusedCard()
+{
+    // Remove an unused card
+    if (this->unusedCardIndex == -1)
+    {
+        return nullptr;
+    }
+    Card* card = this->unusedCards.at(this->unusedCardIndex);
+    this->unusedCards.erase(this->unusedCards.begin() + this->unusedCardIndex);
+    unusedCardIndex--;
+    return card;
+}
+
 void Board::addCardToFoundation(int foundationIndex, Card* card)
 {
     // Add a card to a foundation
     this->foundations[foundationIndex]->push_back(card);
+    card->setIsFaceUp(true);
 }
 
 Card* Board::removeCardFromFoundation(int foundationIndex)
@@ -120,13 +151,33 @@ Card* Board::getCardFromFoundation(int foundationIndex, int cardIndex)
     return this->foundations[foundationIndex]->at(cardIndex);
 }
 
+// This shows the current card that the user can "use"
+Card* Board::getCurrentUnusedCard()
+{
+    // Get the current unused card
+    if (this->unusedCardIndex == -1)
+    {
+        return nullptr;
+    }
+    return this->unusedCards.at(this->unusedCardIndex);
+}
+
 Card* Board::getNextUnusedCard()
 {
+    // Hide the last card
+    if (this->unusedCardIndex != -1)
+    {
+        this->unusedCards.at(this->unusedCardIndex)->setIsFaceUp(false);
+    }
+    
     this->unusedCardIndex++;
     if (this->unusedCardIndex >= this->unusedCards.size())
     {
         this->unusedCardIndex = -1;
         return nullptr;
     }
-    return this->unusedCards.at(this->unusedCardIndex);
+    
+    Card* card = this->unusedCards.at(this->unusedCardIndex);
+    card->setIsFaceUp(true);
+    return card;
 }
