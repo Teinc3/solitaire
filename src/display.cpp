@@ -201,7 +201,7 @@ void Display::drawFoundation(Suit suitIndex)
 {
     int foundationLength = this->game->getBoard()->getFoundationLength(suitIndex);
     int start_x = 64 + 7 * (use2ColFoundation ? suitIndex % 2 : 0);
-    int start_y = 2 + 4 * (use2ColFoundation ? suitIndex - suitIndex % 2 : suitIndex);
+    int start_y = 2 + 4 * (use2ColFoundation ? suitIndex / 2 : suitIndex);
 
     if (foundationLength == 0)
     {   
