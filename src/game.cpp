@@ -1,31 +1,34 @@
 #include "game.hpp"
 #include "display.hpp"
+#include "board.hpp"
 
 Game::Game()
 {   
-    this->board = new Board();
-    this->logic = new Logic(this->board);
-    this->display = new Display(this);
-
     // Initialize the game loop
     this->isRunning = true;
     srand(time(0));
 
     this->gameState = GameState::MAIN_MENU;
     this->menuOption = MenuOption::NEW_GAME;
+
+    this->board = new Board();
+    this->logic = new Logic(this->board);
+    this->display = new Display(this);
+
+    this->isGamePreviouslyCreated = false;
 }
 
 Game::~Game()
 {
-    cleanUp();
+    cleanUp(true);
 }
 
 void Game::createGame()
 {   
     // Reset the game
-    if (this->gameState >= GameState::PLAYING)
+    if (this->isGamePreviouslyCreated)
     {
-        cleanUp();
+        cleanUp(false);
     }
 
     this->gameState = GameState::PLAYING;
@@ -36,18 +39,25 @@ void Game::createGame()
     board->distributeCards(this->deck);
 }
 
-void Game::cleanUp()
+void Game::cleanUp(bool hardCleanUp) // If hardCleanUp is true, delete all objects
 {
     // Clean up the game
     deleteCards();
 
-    delete this->board;
-    delete this->logic;
-    delete this->display;
+    if (hardCleanUp)
+    {
+        delete this->board;
+        delete this->logic;
+        delete this->display;
 
-    this->board = nullptr;
-    this->logic = nullptr;
-    this->display = nullptr;
+        this->board = nullptr;
+        this->logic = nullptr;
+        this->display = nullptr;
+    }
+    else
+    {
+        this->board->cleanup();
+    }
 }
 
 void Game::createCards()
@@ -114,7 +124,7 @@ void Game::update()
 
 void Game::handleInput()
 {
-    nodelay(stdscr, TRUE);  // Make getch non-blocking (don't wait for input)
+    //nodelay(stdscr, TRUE);  // Make getch non-blocking (don't wait for input)
     int ch = getch();  // Get the input from the user
 
     if (ch == ERR)
@@ -127,16 +137,16 @@ void Game::handleInput()
         getch();  // Ignore the [
         switch (getch()) {  // The third character determines the arrow key
         case 'A':  // Up arrow
-            if (this->menuOption > MenuOption::NEW_GAME)
-            {
-                this->menuOption = static_cast<MenuOption>(this->menuOption - 1);
-            }
+            handleArrowKeys(ArrowKey::UP);
             break;
         case 'B':  // Down arrow
-            if (this->menuOption < MenuOption::QUIT)
-            {
-                this->menuOption = static_cast<MenuOption>(this->menuOption + 1);
-            }
+            handleArrowKeys(ArrowKey::DOWN);
+            break;
+        case 'C':  // Right arrow
+            handleArrowKeys(ArrowKey::RIGHT);
+            break;
+        case 'D':  // Left arrow
+            handleArrowKeys(ArrowKey::LEFT);
             break;
         default:
             break;
@@ -145,28 +155,13 @@ void Game::handleInput()
     else if (ch == '\n') // Enter key
     {
         // Handle Enter key press here
-        switch (this->menuOption)
-        {
-        case MenuOption::NEW_GAME:
-            createGame();
-            break;
-        case MenuOption::QUIT:
-            this->isRunning = false;
-            break;
-        default:
-            break;
-        }
+        handleEnterKey();
     }
 }
 
 bool Game::getIsRunning()
 {
     return this->isRunning;
-}
-
-Display* Game::getDisplay()
-{
-    return this->display;
 }
 
 GameState Game::getGameState()
@@ -177,4 +172,68 @@ GameState Game::getGameState()
 MenuOption Game::getMenuOption()
 {
     return this->menuOption;
+}
+
+Display* Game::getDisplay()
+{
+    return this->display;
+}
+
+Board* Game::getBoard()
+{
+    return this->board;
+}
+
+void Game::setIsRunning(bool isRunning)
+{
+    this->isRunning = isRunning;
+}
+
+void Game::handleArrowKeys(ArrowKey arrowKey)
+{
+    // Handle arrow key presses here
+    switch (arrowKey)
+    {
+    case ArrowKey::UP:
+        if (this->gameState != GameState::PLAYING && this->menuOption > MenuOption::NEW_GAME)
+            {
+                this->menuOption = static_cast<MenuOption>(this->menuOption - 1);
+            }
+        break;
+    case ArrowKey::DOWN:
+        if (this->gameState != GameState::PLAYING && this->menuOption < MenuOption::QUIT)
+            {
+                this->menuOption = static_cast<MenuOption>(this->menuOption + 1);
+            }
+        break;
+    case ArrowKey::RIGHT:
+        break;
+    case ArrowKey::LEFT:
+        break;
+    default:
+        break;
+    }
+}
+
+void Game::handleEnterKey()
+{
+    if (this->gameState != GameState::PLAYING)
+    {
+        switch (this->menuOption)
+        {
+        case MenuOption::NEW_GAME:
+            createGame();
+            clear();
+            break;
+        case MenuOption::QUIT:
+            this->isRunning = false;
+            break;
+        default:
+            break;
+        }
+    }
+    else
+    {
+        // Usually confirming an action.
+    }
 }

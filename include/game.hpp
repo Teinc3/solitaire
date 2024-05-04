@@ -5,10 +5,11 @@
 
 #include "common.hpp"
 #include "card.hpp"
-#include "board.hpp"
 #include "logic.hpp"
 
-class Display; // Forward declaration
+// Forward declarations
+class Display;
+class Board;
 
 class Game
 {
@@ -17,7 +18,7 @@ public:
     ~Game();
 
     void createGame();
-    void cleanUp();
+    void cleanUp(bool);
 
     void createCards();
     void deleteCards();
@@ -28,12 +29,17 @@ public:
     void handleInput();
 
     bool getIsRunning();
-    Display* getDisplay();
     GameState getGameState();
     MenuOption getMenuOption();
 
+    Display* getDisplay();
+    Board* getBoard();
+    
+    void setIsRunning(bool);
+
 private:
     bool isRunning;
+    bool isGamePreviouslyCreated;
     GameState gameState;
     MenuOption menuOption;
 
@@ -42,4 +48,7 @@ private:
     Board* board;
     Logic* logic;
     Display* display;
+
+    void handleArrowKeys(ArrowKey);
+    void handleEnterKey();
 };

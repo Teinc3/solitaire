@@ -27,23 +27,6 @@ bool Card::getIsRed()
     return this->suit == Suit::HEARTS || this->suit == Suit::DIAMONDS;
 }
 
-string Card::getSuitString()
-{
-    switch (this->suit)
-    {
-    case Suit::DIAMONDS:
-        return "♦";
-    case Suit::CLUBS:
-        return "♣";
-    case Suit::HEARTS:
-        return "♥";
-    case Suit::SPADES:
-        return "♠";
-    default:
-        return "N/A";
-    }
-}
-
 void Card::setIsFaceUp(bool isFaceUp)
 {
     this->isFaceUp = isFaceUp;

@@ -17,9 +17,26 @@ public:
 private:
     int width;
     bool use2ColFoundation;
+    bool useUnicode;
 
     Game* game;
 
+    // Also an array that keeps track of heights of each stack
+
     void drawBoundary();
     void drawMenu(bool);
+    void drawGameBoard();
+
+    // Secondary drawing functions
+    void drawDelimiter(int);
+    void drawUnusedPile();
+    void drawStack(int);
+    void drawFoundation(Suit);
+
+    void drawCursor();
+    void drawCard(int, int, int, int, Card**[]);
+    void drawCardDivider(int, int, bool);
+
+    string getSuitChar(Suit);
+    string getValueChar(int);
 };

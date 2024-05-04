@@ -6,6 +6,8 @@ int main()
     Game* game = new Game();
     
     Display* display = game->getDisplay();
+    display->render(); // First render - delete if want animations and unblocking input
+
     while (game->getIsRunning())
     {
         game->handleInput();

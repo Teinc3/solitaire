@@ -38,3 +38,11 @@ enum GameState
     PLAYING,
     GAME_MENU
 };
+
+enum ArrowKey
+{
+    UP,
+    DOWN,
+    RIGHT,
+    LEFT
+};
