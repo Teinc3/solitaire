@@ -4,9 +4,16 @@
 #include <iostream>
 #include <string>
 
-#include <ncurses.h>
+#ifdef _WIN32
+    #include <curses.h>
+    #define NCURSES 0
+#else
+    #include <ncurses.h>
+    #define NCURSES 1
+#endif
 
 using std::string;
+using std::vector;
 
 const int MAX_CARDS = 52;
 const int SUIT_COUNT = 4;

@@ -3,6 +3,7 @@
 Display::Display(Game* game)
 {   
     initscr();
+    keypad(stdscr, TRUE);  // Enable special keys
     cbreak();
     noecho();
     curs_set(0);
@@ -12,15 +13,11 @@ Display::Display(Game* game)
 
     if (max_x < MIN_WIDTH || max_y < HEIGHT)
     {
-        // Try to resize the terminal
-        if (resizeterm(HEIGHT, MIN_WIDTH) == ERR)
-        {
-            // If resizing is not possible, quit ncurses and print an error message
-            endwin();
-            std::cout << "Terminal size is too small. Please increase the size of your terminal." << std::endl;
-            game->setIsRunning(false);
-            return;
-        }
+        // quit ncurses and print an error message
+        endwin();
+        game->setIsRunning(false);
+        std::cout << "Please increase the size of your terminal to least 71x21 in order to enjoy the game." << std::endl;
+        return;
     }
     else if (max_x < MIN_2COL_FOUNDATION_WIDTH)
     {

@@ -2,24 +2,32 @@
 CXX = g++
 CXXFLAGS = -Wall -std=c++11
 INCLUDES = -Iinclude
-LIBS = -lncurses
+
 SRC = $(wildcard src/*.cpp)
-OBJ = $(patsubst src/%.cpp, bin/o/%.o, $(SRC))
-TARGET = bin/solitaire
+
+ifeq ($(OS),Windows_NT)
+	OBJ = $(patsubst src/%.cpp, bin/o/%.obj, $(SRC))
+	TARGET = bin\solitaire.exe
+	LIBS = -lpdcurses
+	MAKEDIR = mkdir bin\o
+else
+	DIR_SEP = /
+	OBJ = $(patsubst src/%.cpp, bin/o/%.o, $(SRC))
+	TARGET = bin/solitaire
+	LIBS = -lncurses
+	MAKEDIR = mkdir -p bin/o
+endif
 
 # Default target
-all: $(TARGET)
+all: clean build
 
 # Create the directories
 bin/o/:
-	mkdir -p bin/o
-
-bin/:
-	mkdir -p bin
+	$(MAKEDIR)
 
 # Compilation
-bin/o/%.o: src/%.cpp | bin/o/
-	$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDES)
+bin/o/%.o bin/o/%.obj: src/%.cpp | bin/o/
+	$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDES) $(LIBS)
 
 # Linking
 $(TARGET): $(OBJ)
@@ -27,6 +35,21 @@ $(TARGET): $(OBJ)
 
 # Clean up
 clean:
+ifeq ($(OS),Windows_NT)
+	if exist bin rmdir /s /q bin
+else
 	rm -rf bin
+endif
 
-.PHONY: all clean
+# Build
+build: $(TARGET)
+
+.PHONY: all clean build
+
+print:
+	@echo $(OS)
+	@echo $(SRC)
+	@echo $(OBJ)
+	@echo $(TARGET)
+	@echo $(LIBS)
+	@echo $(MAKEDIR)

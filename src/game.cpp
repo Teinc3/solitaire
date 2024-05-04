@@ -126,36 +126,60 @@ void Game::handleInput()
 {
     //nodelay(stdscr, TRUE);  // Make getch non-blocking (don't wait for input)
     int ch = getch();  // Get the input from the user
-
     if (ch == ERR)
     {
         return;
     }
 
-    if (ch == 27) // If the first character is ESC
+    if (ch == '\n') // Enter key
     {
-        getch();  // Ignore the [
-        switch (getch()) {  // The third character determines the arrow key
-        case 'A':  // Up arrow
+        // Handle Enter key press here
+        handleEnterKey();
+        return;
+    }
+
+    // Macos and Linux use 27 for arrow keys
+    if (NCURSES == 1) {
+        if (ch == 27 && getch() == 91) // ESC + [
+        {
+            switch (getch()) // The third character determines the arrow key
+            {  
+            case 'A':  // Up arrow
+                handleArrowKeys(ArrowKey::UP);
+                break;
+            case 'B':  // Down arrow
+                handleArrowKeys(ArrowKey::DOWN);
+                break;
+            case 'C':  // Right arrow
+                handleArrowKeys(ArrowKey::RIGHT);
+                break;
+            case 'D':  // Left arrow
+                handleArrowKeys(ArrowKey::LEFT);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    else // Windows
+    {
+        switch (ch)
+        {
+        case 450:
             handleArrowKeys(ArrowKey::UP);
             break;
-        case 'B':  // Down arrow
+        case 456:
             handleArrowKeys(ArrowKey::DOWN);
             break;
-        case 'C':  // Right arrow
+        case 454:
             handleArrowKeys(ArrowKey::RIGHT);
             break;
-        case 'D':  // Left arrow
+        case 452:
             handleArrowKeys(ArrowKey::LEFT);
             break;
         default:
             break;
         }
-    }
-    else if (ch == '\n') // Enter key
-    {
-        // Handle Enter key press here
-        handleEnterKey();
     }
 }
 

@@ -7,13 +7,13 @@ Board::Board()
     // Initialize 7 stacks
     for (int i = 0; i < STACK_COUNT; i++)
     {
-        this->stacks[i] = new std::vector<Card*>;
+        this->stacks[i] = new vector<Card*>;
     }
 
     // Initialize 4 foundations and reserve 13 spaces for each
     for (int i = 0; i < FOUNDATION_COUNT; i++)
     {
-        this->foundations[i] = new std::vector<Card*>;
+        this->foundations[i] = new vector<Card*>;
         this->foundations[i]->reserve(MAX_VALUE);
     }
 
@@ -165,7 +165,7 @@ Card* Board::getCurrentUnusedCard()
 Card* Board::getNextUnusedCard()
 {
     // Get the next unused card
-    if (this->unusedCardIndex + 1 >= this->unusedCards.size())
+    if (this->unusedCardIndex + 1 >= static_cast<int>(this->unusedCards.size()))
     {
         return nullptr;
     }
@@ -181,7 +181,7 @@ Card* Board::shiftNextUnusedCard()
     }
     
     this->unusedCardIndex++;
-    if (this->unusedCardIndex >= this->unusedCards.size())
+    if (this->unusedCardIndex >= static_cast<int>(this->unusedCards.size()))
     {
         this->unusedCardIndex = -1;
         return nullptr;

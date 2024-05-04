@@ -34,7 +34,7 @@ public:
 private:
     int unusedCardIndex;
 
-    std::vector<Card*>* stacks[STACK_COUNT];
-    std::vector<Card*>* foundations[FOUNDATION_COUNT];
-    std::vector<Card*> unusedCards;
+    vector<Card*>* stacks[STACK_COUNT];
+    vector<Card*>* foundations[FOUNDATION_COUNT];
+    vector<Card*> unusedCards;
 };
