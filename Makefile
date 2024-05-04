@@ -26,12 +26,12 @@ bin/o/:
 	$(MAKEDIR)
 
 # Compilation
-bin/o/%.o bin/o/%.obj: src/%.cpp | bin/o/
-	$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDES) $(LIBS)
+bin/o/%.o bin/o/%.obj: src/%.cpp
+	$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDES)
 
 # Linking
-$(TARGET): $(OBJ)
-	$(CXX) $^ -o $@ $(INCLUDES) $(LIBS)
+$(TARGET): bin/o/ | $(OBJ)
+	$(CXX) $(OBJ) -o $@ $(INCLUDES) $(LIBS)
 
 # Clean up
 clean:
