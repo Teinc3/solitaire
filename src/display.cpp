@@ -33,6 +33,7 @@ Display::Display(Game* game)
     this->width = use2ColFoundation ? MIN_2COL_FOUNDATION_WIDTH : MIN_WIDTH;
 
     this->game = game;
+    this->horizCursorXIndex = 0;
     this->useUnicode = false;
 }
 
@@ -43,6 +44,8 @@ Display::~Display()
 
 void Display::render()
 {
+    clear();
+
     drawBoundary();
 
     switch (this->game->getGameState())
@@ -61,6 +64,19 @@ void Display::render()
     }
 
     refresh();
+}
+
+void Display::updateHorizCursorX(bool isRight)
+{
+    int max_xIndex = use2ColFoundation ? 9 : 8;
+    if (isRight)
+    {
+        this->horizCursorXIndex = this->horizCursorXIndex == max_xIndex ? 0 : this->horizCursorXIndex + 1;
+    }
+    else
+    {
+        this->horizCursorXIndex = this->horizCursorXIndex == 0 ? max_xIndex : this->horizCursorXIndex - 1;
+    }
 }
 
 void Display::drawBoundary()
@@ -120,7 +136,7 @@ void Display::drawGameBoard()
 
 void Display::drawDelimiter(int x)
 {
-    for (int i = 0; i < HEIGHT; i++)
+    for (int i = 1; i < HEIGHT - 1; i++)
     {
         mvprintw(i, x, "|");
     }
@@ -128,19 +144,64 @@ void Display::drawDelimiter(int x)
 
 void Display::drawUnusedPile()
 {
-    //drawCard(2, 2, this->game->getBoard()->getUnusedCards().size(), 1, nullptr);
+    int start_x = 2;
+    int y = 2;
+
+    int hiddenCount = this->game->getBoard()->getRemainingUnusedCardCount();
+    Card* currCard = this->game->getBoard()->getCurrentUnusedCard();
+    if (currCard == nullptr)
+    {
+        drawCard(start_x, y, hiddenCount, 0, nullptr);
+    }
+    else
+    {
+        Card* nextCard = this->game->getBoard()->getNextUnusedCard();
+        if (nextCard == nullptr)
+        {   
+            drawCardDivider(start_x, y++, true);
+            mvprintw(y++, start_x, "| X |");
+            drawCardDivider(start_x, y++, false);
+            mvprintw(y++, start_x, "|%s%s|", getValueChar(currCard->getValue()).c_str(), getSuitChar(currCard->getSuit()).c_str());
+        }
+        else
+        {
+            Card** visibleCards = new Card*[1];
+            visibleCards[0] = currCard;
+            drawCard(start_x, y++, hiddenCount, 1, &visibleCards);
+            delete[] visibleCards;
+        }
+        drawCardDivider(start_x, y, true);
+    }
 }
 
 void Display::drawStack(int stackIndex)
 {
-    
+    int start_x = 12 + 7 * stackIndex;
+    int start_y = 2;
+
+    int hiddenCount = 0;
+    int visibleCount = 0;
+    Card* stack[this->game->getBoard()->getStackLength(stackIndex)];
+
+    for (int i = 0; i < this->game->getBoard()->getStackLength(stackIndex); i++)
+    {
+        stack[i] = this->game->getBoard()->getCardFromStack(stackIndex, i);
+        stack[i]->getIsFaceUp() ? visibleCount++ : hiddenCount++;
+    }
+    Card** visibleStack = new Card*[visibleCount];
+    for (int i = 0; i < visibleCount; i++)
+    {
+        visibleStack[i] = stack[i + hiddenCount];
+    }
+    drawCard(start_x, start_y, hiddenCount, visibleCount, &visibleStack);
+    delete[] visibleStack;
 }
 
 void Display::drawFoundation(Suit suitIndex)
 {
     int foundationLength = this->game->getBoard()->getFoundationLength(suitIndex);
-    int start_x = 64 + 7 * (suitIndex - (use2ColFoundation && suitIndex > 1 ? 2 : 0));
-    int start_y = use2ColFoundation && suitIndex > 1 ? 6 : 2;
+    int start_x = 64 + 7 * (use2ColFoundation ? suitIndex % 2 : 0);
+    int start_y = 2 + 4 * (use2ColFoundation ? suitIndex - suitIndex % 2 : suitIndex);
 
     if (foundationLength == 0)
     {   
@@ -162,7 +223,9 @@ void Display::drawFoundation(Suit suitIndex)
 
 void Display::drawCursor()
 {
-    
+    int x = HORIZ_CURSOR_XPOS[this->horizCursorXIndex] + 2;
+    mvprintw(1, x, "vvv");
+    mvprintw(HEIGHT - 2, x, "^^^");
 }
 
 void Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card** cards[])
@@ -187,7 +250,7 @@ void Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCou
             hiddenText = "|" + std::to_string(hiddenCount) + "?|";
         }
         mvprintw(current_y++, start_x, hiddenText.c_str());
-        drawCardDivider(start_x, current_y++, false);
+        drawCardDivider(start_x, current_y++, visibleCount <= 0);
     }
     for (int i = 0; i < visibleCount; i++)
     {
@@ -197,7 +260,10 @@ void Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCou
         
         mvprintw(current_y++, start_x, "|%s%s|", (getValueChar(cardValue) + (cardValue == 10 ? "" : " ")).c_str(), getSuitChar(cardSuit).c_str());
     }
-    drawCardDivider(start_x, current_y++, true);
+    if (visibleCount > 0)
+    {
+        drawCardDivider(start_x, current_y++, true);
+    }
 };
 
 void Display::drawCardDivider(int x, int y, bool isEdge)

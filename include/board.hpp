@@ -25,8 +25,11 @@ public:
 
     Card* getCardFromStack(int, int);
     Card* getCardFromFoundation(int, int);
+
     Card* getCurrentUnusedCard();
     Card* getNextUnusedCard();
+    Card* shiftNextUnusedCard();
+    int getRemainingUnusedCardCount();
     
 private:
     int unusedCardIndex;

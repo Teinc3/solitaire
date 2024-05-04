@@ -164,6 +164,16 @@ Card* Board::getCurrentUnusedCard()
 
 Card* Board::getNextUnusedCard()
 {
+    // Get the next unused card
+    if (this->unusedCardIndex + 1 >= this->unusedCards.size())
+    {
+        return nullptr;
+    }
+    return this->unusedCards.at(this->unusedCardIndex + 1);
+}
+
+Card* Board::shiftNextUnusedCard()
+{
     // Hide the last card
     if (this->unusedCardIndex != -1)
     {
@@ -180,4 +190,10 @@ Card* Board::getNextUnusedCard()
     Card* card = this->unusedCards.at(this->unusedCardIndex);
     card->setIsFaceUp(true);
     return card;
+}
+
+int Board::getRemainingUnusedCardCount()
+{
+    // Get the remaining unused card count
+    return this->unusedCards.size() - this->unusedCardIndex - 1;
 }

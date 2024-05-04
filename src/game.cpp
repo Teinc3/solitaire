@@ -113,11 +113,11 @@ void Game::update()
 
     // Get all Unused cards
     std::cout << "Unused Cards: " << std::endl;
-    Card* card = this->board->getNextUnusedCard();
+    Card* card = this->board->shiftNextUnusedCard();
     while (card != nullptr)
     {
         std::cout << card->getSuit() << "-" << card->getValue() << " ";
-        card = this->board->getNextUnusedCard();
+        card = this->board->shiftNextUnusedCard();
     }
     std::cout << std::endl; */
 }
@@ -207,8 +207,16 @@ void Game::handleArrowKeys(ArrowKey arrowKey)
             }
         break;
     case ArrowKey::RIGHT:
+        if (this->gameState == GameState::PLAYING)
+        {
+            this->display->updateHorizCursorX(true);
+        }
         break;
     case ArrowKey::LEFT:
+        if (this->gameState == GameState::PLAYING)
+        {
+            this->display->updateHorizCursorX(false);
+        }
         break;
     default:
         break;
