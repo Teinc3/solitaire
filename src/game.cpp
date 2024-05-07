@@ -95,31 +95,19 @@ void Game::shuffleCards()
 void Game::update()
 {
     // Update the game
-    //this->board->flipTopStackCards();
-
-    /* std::cout << "Card Distribution:" << std::endl;
-    // Get cards from all stacks
-    for (int i = 0; i < STACK_COUNT; i++)
-    {   
-        int stackLength = this->board->getStackLength(i);
-        std::cout << "Stack " << i + 1 << "[" << stackLength << "] : ";
-        for (int j = 0; j < stackLength; j++)
-        {
-            Card* card = this->board->getCardFromStack(i, j);
-            std::cout << card->getSuit() << "-" << card->getValue() << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    // Get all Unused cards
-    std::cout << "Unused Cards: " << std::endl;
-    Card* card = this->board->shiftNextUnusedCard();
-    while (card != nullptr)
+    switch (this->gameState)
     {
-        std::cout << card->getSuit() << "-" << card->getValue() << " ";
-        card = this->board->shiftNextUnusedCard();
+    case GameState::MAIN_MENU:
+        // Handle main menu logic here
+        break;
+    case GameState::PLAYING:
+        this->board->flipTopStackCards();
+        this->display->clampCursorPiles();
+        break;
+    case GameState::GAME_MENU:
+        // Handle game menu logic here
+        break;
     }
-    std::cout << std::endl; */
 }
 
 void Game::handleInput()
@@ -140,45 +128,20 @@ void Game::handleInput()
 
     // Macos and Linux use 27 for arrow keys
     if (NCURSES == 1) {
-        if (ch == 27 && getch() == 91) // ESC + [
+        if (ch == ESCAPE_CODE && getch() == CSI_CODE) // ESC + [
         {
-            switch (getch()) // The third character determines the arrow key
-            {  
-            case 'A':  // Up arrow
-                handleArrowKeys(ArrowKey::UP);
-                break;
-            case 'B':  // Down arrow
-                handleArrowKeys(ArrowKey::DOWN);
-                break;
-            case 'C':  // Right arrow
-                handleArrowKeys(ArrowKey::RIGHT);
-                break;
-            case 'D':  // Left arrow
-                handleArrowKeys(ArrowKey::LEFT);
-                break;
-            default:
-                break;
+            ch = getch();
+            if (ch >= ArrowKey::UP && ch <= ArrowKey::LEFT)
+            {
+                handleArrowKeys(static_cast<ArrowKey>(ch));
             }
         }
     }
     else // Windows
     {
-        switch (ch)
+        if (ch >= ArrowKey::UP && ch <= ArrowKey::DOWN)
         {
-        case 450:
-            handleArrowKeys(ArrowKey::UP);
-            break;
-        case 456:
-            handleArrowKeys(ArrowKey::DOWN);
-            break;
-        case 454:
-            handleArrowKeys(ArrowKey::RIGHT);
-            break;
-        case 452:
-            handleArrowKeys(ArrowKey::LEFT);
-            break;
-        default:
-            break;
+            handleArrowKeys(static_cast<ArrowKey>(ch));
         }
     }
 }
@@ -220,15 +183,24 @@ void Game::handleArrowKeys(ArrowKey arrowKey)
     {
     case ArrowKey::UP:
         if (this->gameState != GameState::PLAYING && this->menuOption > MenuOption::NEW_GAME)
-            {
-                this->menuOption = static_cast<MenuOption>(this->menuOption - 1);
-            }
+        {
+            this->menuOption = static_cast<MenuOption>(this->menuOption - 1);
+        }
+        else
+        {
+            // Decrease the vertical index of the cursor
+            this->display->updateVerticalCursorIndex(true);
+        }
         break;
     case ArrowKey::DOWN:
         if (this->gameState != GameState::PLAYING && this->menuOption < MenuOption::QUIT)
-            {
-                this->menuOption = static_cast<MenuOption>(this->menuOption + 1);
-            }
+        {
+            this->menuOption = static_cast<MenuOption>(this->menuOption + 1);
+        }
+        else
+        {
+            this->display->updateVerticalCursorIndex(false);
+        }
         break;
     case ArrowKey::RIGHT:
         if (this->gameState == GameState::PLAYING)

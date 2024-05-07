@@ -3,12 +3,34 @@
 #include <common.hpp>
 #include <game.hpp>
 
-const int MIN_WIDTH = 71; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
-const int HEIGHT = 21; //1+1+(3+13+1)+1+1
-const int MIN_2COL_FOUNDATION_WIDTH = 78; //MIN_WIDTH+(2+5)
+constexpr int MIN_WIDTH = 71; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
+constexpr int HEIGHT = 21; //1+1+(3+13+1)+1+1
+constexpr int MIN_2COL_FOUNDATION_WIDTH = 78; //MIN_WIDTH+(2+5)
 
-const int HORIZ_CURSOR_XPOS[10] = { 1, 11, 18, 25, 32, 39, 46, 53, 63, 70 };
-const int HORIZ_CURSOR_X_OFFSET = 6;
+constexpr int HORIZ_CURSOR_XPOS[10] = { 1, 11, 18, 25, 32, 39, 46, 53, 63, 70 };
+
+
+struct CursorPileInfo
+{
+    int startingY = 2; // For Foundation piles
+
+    /*
+    Unused pile: At unusedCardIndex = 0 is False (Then, show X + Last unused card), otherwise True
+    Stack: Depends
+    Foundation: Always False
+    */
+    bool hasHiddenCard = false;
+    
+    /*
+    Unused Pile: 0 or 1
+    Stacks: 0 to visibleCardCount + (hiddenCardCount > 0 ? 1 : 0)
+    Foundation: If use2ColFoundation, 0 or 1, otherwise 0 to 3
+    If you have hiddenCard you will most likely bump the y Coordinate up by 2
+    */
+    int currentCursorVerticalIndex = 0;
+    int yHeight = 3;
+    // For unused Pile, At MAX value (24) = ? + No display Cards, 0 = X + Last displayed card, basically -1 to 23 MAX
+};
 
 class Display {
 public:
@@ -16,7 +38,10 @@ public:
     ~Display();
 
     void render();
+
     void updateHorizCursorX(bool);
+    void clampCursorPiles();
+    void updateVerticalCursorIndex(bool);
 
 private:
     int width;
@@ -24,10 +49,10 @@ private:
     bool useUnicode;
 
     int horizCursorXIndex;
+    // Also an array that keeps track of heights of each stack
+    CursorPileInfo pileCursors[1 + STACK_COUNT + 2];
 
     Game* game;
-
-    // Also an array that keeps track of heights of each stack
 
     void drawBoundary();
     void drawMenu(bool);

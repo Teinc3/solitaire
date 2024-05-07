@@ -7,21 +7,38 @@
 #ifdef _WIN32
     #include <curses.h>
     #define NCURSES 0
+
+    #define ESCAPE_CODE 27
+    #define CSI_CODE 91
+    enum ArrowKey
+    {
+        UP = 450,
+        LEFT = 452,
+        RIGHT = 454,
+        DOWN = 456
+    };
 #else
     #include <ncurses.h>
-    #define NCURSES 1
+    #define NCURSES 1    
+    enum ArrowKey
+    {
+        UP = 65,
+        DOWN,
+        RIGHT,
+        LEFT
+    };
 #endif
 
 using std::string;
 using std::vector;
 
-const int MAX_CARDS = 52;
-const int SUIT_COUNT = 4;
-const int MAX_VALUE = 13;
+constexpr int MAX_CARDS = 52;
+constexpr int SUIT_COUNT = 4;
+constexpr int MAX_VALUE = 13;
 
-const int STACK_COUNT = 7;
-const int FOUNDATION_COUNT = 4;
-const int RESERVED_CARDS = 24;
+constexpr int STACK_COUNT = 7;
+constexpr int FOUNDATION_COUNT = 4;
+constexpr int RESERVED_CARDS = 24;
 
 enum Suit
 {
@@ -44,12 +61,4 @@ enum GameState
     MAIN_MENU,
     PLAYING,
     GAME_MENU
-};
-
-enum ArrowKey
-{
-    UP,
-    DOWN,
-    RIGHT,
-    LEFT
 };

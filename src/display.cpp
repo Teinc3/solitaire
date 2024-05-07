@@ -21,13 +21,13 @@ Display::Display(Game* game)
     }
     else if (max_x < MIN_2COL_FOUNDATION_WIDTH)
     {
-        use2ColFoundation = false;
+        this->use2ColFoundation = false;
     }
     else
     {
-        use2ColFoundation = true;
+        this->use2ColFoundation = true;
     }
-    this->width = use2ColFoundation ? MIN_2COL_FOUNDATION_WIDTH : MIN_WIDTH;
+    this->width = this->use2ColFoundation ? MIN_2COL_FOUNDATION_WIDTH : MIN_WIDTH;
 
     this->game = game;
     this->horizCursorXIndex = 0;
@@ -65,7 +65,7 @@ void Display::render()
 
 void Display::updateHorizCursorX(bool isRight)
 {
-    int max_xIndex = use2ColFoundation ? 9 : 8;
+    int max_xIndex = this->use2ColFoundation ? 9 : 8;
     if (isRight)
     {
         this->horizCursorXIndex = this->horizCursorXIndex == max_xIndex ? 0 : this->horizCursorXIndex + 1;
@@ -74,6 +74,75 @@ void Display::updateHorizCursorX(bool isRight)
     {
         this->horizCursorXIndex = this->horizCursorXIndex == 0 ? max_xIndex : this->horizCursorXIndex - 1;
     }
+}
+
+void Display::clampCursorPiles()
+{   
+    for (int i = 0; i < 1 + STACK_COUNT + (use2ColFoundation ? 2 : 1); i++)
+    {
+        bool isFoundation = i >= 1 + STACK_COUNT;
+        int maxVal = 0;
+        int yHeight = 3;
+
+        this->pileCursors[i].startingY = 2;
+
+        bool hasHiddenCard = false;
+        if (i == 0) // Unused pile
+        {
+            Card* nextCard = this->game->getBoard()->getNextUnusedCard();
+            hasHiddenCard = nextCard == nullptr; // | X | means no hidden card
+
+            Card* currCard = this->game->getBoard()->getCurrentUnusedCard();
+            if (currCard != nullptr)
+            {
+                maxVal = 1;
+                yHeight = 5;
+            }
+        }
+        else if (!isFoundation) // Stacks
+        {
+            int stackIndex = i - 1;
+            int stackLength = this->game->getBoard()->getStackLength(stackIndex);
+            int visibleCount = 0;
+
+            for (int j = 0; j < stackLength; j++)
+            {
+                if (this->game->getBoard()->getCardFromStack(stackIndex, j)->getIsFaceUp())
+                {
+                    visibleCount++;
+                }
+                else
+                {
+                    hasHiddenCard = true;
+                }
+            }
+
+            maxVal = (hasHiddenCard ? 1 : 0) + visibleCount - 1;
+            yHeight = (hasHiddenCard ? 2 : 0) + visibleCount + 2;
+        }
+        else
+        {
+            hasHiddenCard = false;
+            maxVal = this->use2ColFoundation ? 1 : 3;
+            yHeight = 3;
+        }
+        this->pileCursors[i].hasHiddenCard = hasHiddenCard;
+        // Here we try not to modify it unless it is over the max value, then we shift it back until it is within bounds
+        if (this->pileCursors[i].currentCursorVerticalIndex > maxVal)
+        {
+            this->pileCursors[i].currentCursorVerticalIndex = maxVal;
+        }
+        else if (this->pileCursors[i].currentCursorVerticalIndex < 0)
+        {
+            this->pileCursors[i].currentCursorVerticalIndex = 0;
+        }
+        this->pileCursors[i].yHeight = yHeight;
+    }
+}
+
+void Display::updateVerticalCursorIndex(bool isUp)
+{
+    this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += isUp ? -1 : 1;
 }
 
 void Display::drawBoundary()
@@ -128,6 +197,7 @@ void Display::drawGameBoard()
     {
         drawFoundation(static_cast<Suit>(i));
     }
+
     drawCursor();
 }
 
@@ -197,8 +267,8 @@ void Display::drawStack(int stackIndex)
 void Display::drawFoundation(Suit suitIndex)
 {
     int foundationLength = this->game->getBoard()->getFoundationLength(suitIndex);
-    int start_x = 64 + 7 * (use2ColFoundation ? suitIndex % 2 : 0);
-    int start_y = 2 + 4 * (use2ColFoundation ? suitIndex / 2 : suitIndex);
+    int start_x = 64 + 7 * (this->use2ColFoundation ? suitIndex % 2 : 0);
+    int start_y = 2 + 4 * (this->use2ColFoundation ? suitIndex / 2 : suitIndex);
 
     if (foundationLength == 0)
     {   
@@ -220,9 +290,48 @@ void Display::drawFoundation(Suit suitIndex)
 
 void Display::drawCursor()
 {
-    int x = HORIZ_CURSOR_XPOS[this->horizCursorXIndex] + 2;
-    mvprintw(1, x, "vvv");
-    mvprintw(HEIGHT - 2, x, "^^^");
+    int baseX = HORIZ_CURSOR_XPOS[this->horizCursorXIndex];
+    CursorPileInfo& cursorPile = this->pileCursors[this->horizCursorXIndex];
+    int yPos;
+
+    if (this->horizCursorXIndex <= STACK_COUNT)
+    {
+        mvprintw(cursorPile.startingY - 1, baseX + 2, "vvv");
+        mvprintw(cursorPile.startingY + cursorPile.yHeight, baseX + 2, "^^^");
+    }
+
+    if (this->horizCursorXIndex == 0) // Unused Pile
+    {   
+        yPos = cursorPile.startingY + 1 + 2 * cursorPile.currentCursorVerticalIndex;
+    }
+    else if (this->horizCursorXIndex <= STACK_COUNT) // Stacks
+    {
+        if (cursorPile.hasHiddenCard)
+        {
+            // 0 will be the hidden card, 1 will be the first visible card
+            if (cursorPile.currentCursorVerticalIndex == 0)
+            {
+                yPos = cursorPile.startingY + 1;
+            }
+            else
+            {
+                yPos = cursorPile.startingY + 2 + cursorPile.currentCursorVerticalIndex;
+            }
+        }
+        else
+        {
+            yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex;
+        }
+    }
+    else // Foundations
+    {
+        yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex * (cursorPile.yHeight + 1);
+        mvprintw(yPos - 2, baseX + 2, "vvv");
+        mvprintw(yPos + 2, baseX + 2, "^^^");
+    }
+    // We will want to use pileCursors to check the height of the stack and print the cursor at the appropriate position
+    mvprintw(yPos, baseX, ">");
+    mvprintw(yPos, baseX + 6, "<");
 }
 
 void Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card** cards[])
