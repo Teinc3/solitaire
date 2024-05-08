@@ -126,23 +126,9 @@ void Game::handleInput()
         return;
     }
 
-    // Macos and Linux use 27 for arrow keys
-    if (NCURSES == 1) {
-        if (ch == ESCAPE_CODE && getch() == CSI_CODE) // ESC + [
-        {
-            ch = getch();
-            if (ch >= ArrowKey::UP && ch <= ArrowKey::LEFT)
-            {
-                handleArrowKeys(static_cast<ArrowKey>(ch));
-            }
-        }
-    }
-    else // Windows
+    if ((NCURSES == 1 && ch >= ArrowKey::DOWN && ch <= ArrowKey::RIGHT) || (NCURSES != 1 && ch >= ArrowKey::UP && ch <= ArrowKey::DOWN))
     {
-        if (ch >= ArrowKey::UP && ch <= ArrowKey::DOWN)
-        {
-            handleArrowKeys(static_cast<ArrowKey>(ch));
-        }
+        handleArrowKeys(static_cast<ArrowKey>(ch));
     }
 }
 

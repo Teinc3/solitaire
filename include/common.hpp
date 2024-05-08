@@ -7,9 +7,7 @@
 #ifdef _WIN32
     #include <curses.h>
     #define NCURSES 0
-
-    #define ESCAPE_CODE 27
-    #define CSI_CODE 91
+    
     enum ArrowKey
     {
         UP = 450,
@@ -19,13 +17,14 @@
     };
 #else
     #include <ncurses.h>
-    #define NCURSES 1    
+    #define NCURSES 1
+
     enum ArrowKey
     {
-        UP = 65,
-        DOWN,
-        RIGHT,
-        LEFT
+        DOWN = 258,
+        UP,
+        LEFT,
+        RIGHT
     };
 #endif
 

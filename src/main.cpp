@@ -3,20 +3,17 @@
 
 int main()
 {
-    Game* game = new Game();
+    Game game;
     
-    Display* display = game->getDisplay();
+    Display* display = game.getDisplay();
     display->render(); // First render - delete if want animations and unblocking input
 
-    while (game->getIsRunning())
+    while (game.getIsRunning())
     {
-        game->handleInput();
-        game->update();
+        game.handleInput();
+        game.update();
         display->render();
     }
-
-    delete game;
-    game = nullptr;
-
+    
     return 0;
 }
