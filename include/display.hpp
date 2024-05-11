@@ -61,7 +61,7 @@ private:
     // Also an array that keeps track of heights of each stack
     CursorPileInfo pileCursors[1 + STACK_COUNT + 2];
 
-    Game* game;
+    Game* game = nullptr;
 
     void drawBoundary();
     void drawMenu(bool);

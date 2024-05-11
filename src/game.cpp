@@ -47,13 +47,14 @@ void Game::cleanUp(bool hardCleanUp) // If hardCleanUp is true, delete all objec
 
     if (hardCleanUp)
     {
-        delete this->board;
-        delete this->logic;
         delete this->display;
-
-        this->board = nullptr;
-        this->logic = nullptr;
         this->display = nullptr;
+
+        delete this->display;
+        this->display = nullptr;
+
+        delete this->logic;
+        this->logic = nullptr;
     }
     else
     {

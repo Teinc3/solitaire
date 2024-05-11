@@ -6,6 +6,12 @@ Logic::Logic(Board* board, Display* display)
     this->display = display;
 }
 
+Logic::~Logic()
+{
+    this->board = nullptr;
+    this->display = nullptr;
+}
+
 void Logic::handleUnusedCardSelection(int verticalCursorIndex)
 {
     // If Cursor is on ?/X, shift to next card

@@ -44,11 +44,11 @@ private:
     GameState gameState;
     MenuOption menuOption;
 
-    Card* deck[MAX_CARDS];
+    Card* deck[MAX_CARDS] = { nullptr };
     
-    Board* board;
-    Logic* logic;
-    Display* display;
+    Board* board = nullptr;
+    Logic* logic = nullptr;
+    Display* display = nullptr;
 
     void handleArrowKeys(ArrowKey);
     void handleEnterKey();

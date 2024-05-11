@@ -41,6 +41,8 @@ Display::~Display()
     clear();
     refresh();
     endwin();  // End curses mode
+
+    this->game = nullptr;
 }
 
 void Display::render()

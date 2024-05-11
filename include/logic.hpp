@@ -12,6 +12,7 @@ class Logic
 {
 public:
     Logic(Board*, Display*);
+    ~Logic();
 
     void handleUnusedCardSelection(int);
 
@@ -22,8 +23,8 @@ public:
     bool foundationToStack(int, int);
 
 private:
-    Board* board;
-    Display* display;
+    Board* board = nullptr;
+    Display* display = nullptr;
 
     static bool canExistingStackAcceptCard(Card*, Card*);
     static bool canEmptyStackAcceptCard(Card*);

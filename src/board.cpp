@@ -33,11 +33,13 @@ void Board::cleanup()
     for (int i = 0; i < STACK_COUNT; i++)
     {
         delete this->stacks[i];
+        this->stacks[i] = nullptr;
     }
 
     for (int i = 0; i < FOUNDATION_COUNT; i++)
     {
         delete this->foundations[i];
+        this->foundations[i] = nullptr;
     }
 }
 
