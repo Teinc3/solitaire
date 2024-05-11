@@ -1,12 +1,19 @@
 #pragma once
 
 #include "common.hpp"
+
 #include "board.hpp"
+#include "display.hpp"
+
+class Board;
+class Display;
 
 class Logic
 {
 public:
-    Logic(Board*);
+    Logic(Board*, Display*);
+
+    void handleUnusedCardSelection(int);
 
     bool stackToStack(int, int, int);
     bool stackToFoundation(int);
@@ -16,6 +23,7 @@ public:
 
 private:
     Board* board;
+    Display* display;
 
     static bool canExistingStackAcceptCard(Card*, Card*);
     static bool canEmptyStackAcceptCard(Card*);

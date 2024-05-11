@@ -1,7 +1,8 @@
 #pragma once
 
-#include <common.hpp>
-#include <game.hpp>
+#include "common.hpp"
+#include "card.hpp"
+#include "game.hpp"
 
 constexpr int MIN_WIDTH = 71; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
 constexpr int HEIGHT = 21; //1+1+(3+13+1)+1+1
@@ -42,6 +43,10 @@ public:
     void updateHorizCursorX(bool);
     void clampCursorPiles();
     void updateVerticalCursorIndex(bool);
+    void updateCursorLock(bool);
+
+    int getHorizCursorXIndex();
+    int getVerticalCursorIndex();
 
 private:
     int width;
@@ -49,6 +54,10 @@ private:
     bool useUnicode;
 
     int horizCursorXIndex;
+    // If true, then when we change horizCursorXIndex, we do not also change the stackIndex
+    bool isLockedCursor;
+    // -1 if horizcursor is not on stacks, otherwise 0 to 6. 
+    int lockedCursorPileIndex;
     // Also an array that keeps track of heights of each stack
     CursorPileInfo pileCursors[1 + STACK_COUNT + 2];
 
@@ -65,7 +74,7 @@ private:
     void drawFoundation(Suit);
 
     void drawCursor();
-    void drawCard(int, int, int, int, Card**[]);
+    int drawCard(int, int, int, int, Card**[]);
     void drawCardDivider(int, int, bool);
 
     string getSuitChar(Suit);

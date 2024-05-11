@@ -5,11 +5,12 @@
 
 #include "common.hpp"
 #include "card.hpp"
-#include "logic.hpp"
 
 // Forward declarations
+
 class Display;
 class Board;
+class Logic;
 
 class Game
 {

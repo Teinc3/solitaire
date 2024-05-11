@@ -1,6 +1,7 @@
 #include "game.hpp"
-#include "display.hpp"
 #include "board.hpp"
+#include "display.hpp"
+#include "logic.hpp"
 
 Game::Game()
 {   
@@ -12,8 +13,8 @@ Game::Game()
     this->menuOption = MenuOption::NEW_GAME;
 
     this->board = new Board();
-    this->logic = new Logic(this->board);
     this->display = new Display(this);
+    this->logic = new Logic(this->board, this->display);
 
     this->isGamePreviouslyCreated = false;
 }
@@ -129,6 +130,13 @@ void Game::handleInput()
     if ((NCURSES == 1 && ch >= ArrowKey::DOWN && ch <= ArrowKey::RIGHT) || (NCURSES != 1 && ch >= ArrowKey::UP && ch <= ArrowKey::DOWN))
     {
         handleArrowKeys(static_cast<ArrowKey>(ch));
+        return;
+    }
+
+    if (ch == 3) // Ctrl + C
+    {
+        this->isRunning = false;
+        return;
     }
 }
 
@@ -225,5 +233,18 @@ void Game::handleEnterKey()
     else
     {
         // Usually confirming an action.
+        int horizCursorXIndex = this->display->getHorizCursorXIndex();
+        if (horizCursorXIndex == 0) // Unused pile
+        {
+            this->logic->handleUnusedCardSelection(this->display->getVerticalCursorIndex());
+        }
+        else if (horizCursorXIndex >= 1 && horizCursorXIndex <= STACK_COUNT)
+        {
+            // Stack
+        }
+        else
+        {
+            // Foundation
+        }
     }
 }

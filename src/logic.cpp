@@ -1,8 +1,22 @@
 #include "logic.hpp"
 
-Logic::Logic(Board* board)
+Logic::Logic(Board* board, Display* display)
 {
     this->board = board;
+    this->display = display;
+}
+
+void Logic::handleUnusedCardSelection(int verticalCursorIndex)
+{
+    // If Cursor is on ?/X, shift to next card
+    if (verticalCursorIndex == 0)
+    {
+        this->board->shiftNextUnusedCard();
+    }
+    else // lock cursor
+    {
+        this->display->updateCursorLock(true);
+    }
 }
 
 // Move cards from one stack to another stack

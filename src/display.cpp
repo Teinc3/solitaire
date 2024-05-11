@@ -1,4 +1,5 @@
 #include "display.hpp"
+#include "board.hpp"
 
 Display::Display(Game* game)
 {   
@@ -31,11 +32,14 @@ Display::Display(Game* game)
 
     this->game = game;
     this->horizCursorXIndex = 0;
+    this->lockedCursorPileIndex = this->horizCursorXIndex;
     this->useUnicode = false;
 }
 
 Display::~Display()
 {
+    clear();
+    refresh();
     endwin();  // End curses mode
 }
 
@@ -73,6 +77,10 @@ void Display::updateHorizCursorX(bool isRight)
     else
     {
         this->horizCursorXIndex = this->horizCursorXIndex == 0 ? max_xIndex : this->horizCursorXIndex - 1;
+    }
+    if (!this->isLockedCursor)
+    {
+        updateCursorLock(this->isLockedCursor);
     }
 }
 
@@ -142,7 +150,31 @@ void Display::clampCursorPiles()
 
 void Display::updateVerticalCursorIndex(bool isUp)
 {
-    this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += isUp ? -1 : 1;
+    if (!this->isLockedCursor)
+    {
+        this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += isUp ? -1 : 1;
+    }
+    else if (this->horizCursorXIndex > STACK_COUNT)
+    {
+        // If we are on a foundation we need to let the user move the cursor up and down
+        this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += isUp ? -1 : 1;
+    }
+}
+
+void Display::updateCursorLock(bool lockCursor)
+{
+    this->isLockedCursor = lockCursor;
+    this->lockedCursorPileIndex = this->horizCursorXIndex;
+}
+
+int Display::getHorizCursorXIndex()
+{
+    return this->horizCursorXIndex;
+}
+
+int Display::getVerticalCursorIndex()
+{
+    return this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex;
 }
 
 void Display::drawBoundary()
@@ -228,16 +260,16 @@ void Display::drawUnusedPile()
             drawCardDivider(start_x, y++, true);
             mvprintw(y++, start_x, "| X |");
             drawCardDivider(start_x, y++, false);
-            mvprintw(y++, start_x, "|%s%s|", getValueChar(currCard->getValue()).c_str(), getSuitChar(currCard->getSuit()).c_str());
+            mvprintw(y++, start_x, "|%s%s%s|", getValueChar(currCard->getValue()).c_str(), currCard->getValue() == 10 ? "" : " ", getSuitChar(currCard->getSuit()).c_str());
+            drawCardDivider(start_x, y, true);
         }
         else
         {
             Card** visibleCards = new Card*[1];
             visibleCards[0] = currCard;
-            drawCard(start_x, y++, hiddenCount, 1, &visibleCards);
+            y = drawCard(start_x, y++, hiddenCount, 1, &visibleCards);
             delete[] visibleCards;
         }
-        drawCardDivider(start_x, y, true);
     }
 }
 
@@ -290,21 +322,34 @@ void Display::drawFoundation(Suit suitIndex)
 
 void Display::drawCursor()
 {
+    // Draw the horizontal cursors first
     int baseX = HORIZ_CURSOR_XPOS[this->horizCursorXIndex];
     CursorPileInfo& cursorPile = this->pileCursors[this->horizCursorXIndex];
-    int yPos;
 
     if (this->horizCursorXIndex <= STACK_COUNT)
     {
         mvprintw(cursorPile.startingY - 1, baseX + 2, "vvv");
         mvprintw(cursorPile.startingY + cursorPile.yHeight, baseX + 2, "^^^");
     }
+    else
+    {
+        int yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex * (cursorPile.yHeight + 1);
+        mvprintw(yPos - 2, baseX + 2, "vvv");
+        mvprintw(yPos + 2, baseX + 2, "^^^");
+    }
 
-    if (this->horizCursorXIndex == 0) // Unused Pile
+    // Now draw vertical cursors
+    // Use the locked cursor if it is locked, hence reassign the baseX and cursorPile
+    int pileIndex = this->isLockedCursor ? this->lockedCursorPileIndex : this->horizCursorXIndex;
+    int yPos;
+    baseX = HORIZ_CURSOR_XPOS[pileIndex];
+    cursorPile = this->pileCursors[pileIndex];
+
+    if (pileIndex == 0) // Unused Pile
     {   
         yPos = cursorPile.startingY + 1 + 2 * cursorPile.currentCursorVerticalIndex;
     }
-    else if (this->horizCursorXIndex <= STACK_COUNT) // Stacks
+    else if (pileIndex <= STACK_COUNT) // Stacks
     {
         if (cursorPile.hasHiddenCard)
         {
@@ -326,15 +371,13 @@ void Display::drawCursor()
     else // Foundations
     {
         yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex * (cursorPile.yHeight + 1);
-        mvprintw(yPos - 2, baseX + 2, "vvv");
-        mvprintw(yPos + 2, baseX + 2, "^^^");
     }
     // We will want to use pileCursors to check the height of the stack and print the cursor at the appropriate position
     mvprintw(yPos, baseX, ">");
     mvprintw(yPos, baseX + 6, "<");
 }
 
-void Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card** cards[])
+int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card** cards[])
 {   
     int current_y = start_y;
     drawCardDivider(start_x, current_y++, true);
@@ -370,6 +413,8 @@ void Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCou
     {
         drawCardDivider(start_x, current_y++, true);
     }
+
+    return current_y;
 };
 
 void Display::drawCardDivider(int x, int y, bool isEdge)
