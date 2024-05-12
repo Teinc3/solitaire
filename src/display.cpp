@@ -82,7 +82,7 @@ void Display::updateHorizCursorX(bool isRight)
     }
     if (!this->isLockedCursor)
     {
-        updateCursorLock(this->isLockedCursor);
+        updateCursorLock(false);
     }
 }
 
@@ -163,10 +163,16 @@ void Display::updateVerticalCursorIndex(bool isUp)
     }
 }
 
-void Display::updateCursorLock(bool lockCursor)
+void Display::updateCursorLock(bool changeCursorStatus)
 {
-    this->isLockedCursor = lockCursor;
-    this->lockedCursorPileIndex = this->horizCursorXIndex;
+    if (changeCursorStatus)
+    {
+        this->isLockedCursor = !this->isLockedCursor;
+    }
+    if (!this->isLockedCursor)
+    {
+        this->lockedCursorPileIndex = this->horizCursorXIndex;
+    }
 }
 
 int Display::getHorizCursorXIndex()
@@ -177,6 +183,16 @@ int Display::getHorizCursorXIndex()
 int Display::getVerticalCursorIndex()
 {
     return this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex;
+}
+
+int Display::getLockedCursorPileIndex()
+{
+    return this->lockedCursorPileIndex;
+}
+
+int Display::is2ColFoundation()
+{
+    return this->use2ColFoundation;
 }
 
 void Display::drawBoundary()
@@ -267,10 +283,8 @@ void Display::drawUnusedPile()
         }
         else
         {
-            Card** visibleCards = new Card*[1];
-            visibleCards[0] = currCard;
-            y = drawCard(start_x, y++, hiddenCount, 1, &visibleCards);
-            delete[] visibleCards;
+            Card* visibleCards[1] { currCard };
+            y = drawCard(start_x, y++, hiddenCount, 1, visibleCards);
         }
     }
 }
@@ -282,20 +296,20 @@ void Display::drawStack(int stackIndex)
 
     int hiddenCount = 0;
     int visibleCount = 0;
-    Card* stack[this->game->getBoard()->getStackLength(stackIndex)];
+    int stackLength = this->game->getBoard()->getStackLength(stackIndex);
+    Card* stack[stackLength];
 
-    for (int i = 0; i < this->game->getBoard()->getStackLength(stackIndex); i++)
+    for (int i = 0; i < stackLength; i++)
     {
         stack[i] = this->game->getBoard()->getCardFromStack(stackIndex, i);
         stack[i]->getIsFaceUp() ? visibleCount++ : hiddenCount++;
     }
-    Card** visibleStack = new Card*[visibleCount];
+    Card* visibleStack[visibleCount];
     for (int i = 0; i < visibleCount; i++)
     {
         visibleStack[i] = stack[i + hiddenCount];
     }
-    drawCard(start_x, start_y, hiddenCount, visibleCount, &visibleStack);
-    delete[] visibleStack;
+    drawCard(start_x, start_y, hiddenCount, visibleCount, visibleStack);
 }
 
 void Display::drawFoundation(Suit suitIndex)
@@ -312,13 +326,11 @@ void Display::drawFoundation(Suit suitIndex)
     }
     else
     {
-        // Make a 1-element array to pass to drawCard
+        // Make a 1-element array to pass to draw-card
         Card* foundationCard = foundationLength == 0 ? nullptr : this->game->getBoard()->getCardFromFoundation(suitIndex, foundationLength - 1);
-        Card** foundationCardArray = new Card*[1];
-        foundationCardArray[0] = foundationCard;
+        Card* foundationCardArray[1] { foundationCard };
 
-        drawCard(start_x, start_y, 0, foundationLength, &foundationCardArray);
-        delete[] foundationCardArray;
+        drawCard(start_x, start_y, 0, foundationLength, foundationCardArray);
     }
 }
 
@@ -379,7 +391,7 @@ void Display::drawCursor()
     mvprintw(yPos, baseX + 6, "<");
 }
 
-int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card** cards[])
+int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card* cards[])
 {   
     int current_y = start_y;
     drawCardDivider(start_x, current_y++, true);
@@ -405,7 +417,7 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
     }
     for (int i = 0; i < visibleCount; i++)
     {
-        Card* card = *cards[i];
+        Card* card = cards[i];
         int cardValue = card->getValue();
         Suit cardSuit = card->getSuit();
         

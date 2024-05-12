@@ -235,17 +235,27 @@ void Game::handleEnterKey()
     {
         // Usually confirming an action.
         int horizCursorXIndex = this->display->getHorizCursorXIndex();
+        bool result;
         if (horizCursorXIndex == 0) // Unused pile
         {
             this->logic->handleUnusedCardSelection(this->display->getVerticalCursorIndex());
+            result = true; // Unless sth weird happens, such as cursor is on an emptied unused pile, shouldnt have errors
         }
         else if (horizCursorXIndex >= 1 && horizCursorXIndex <= STACK_COUNT)
         {
             // Stack
+            result = this->logic->handleStackSelection(horizCursorXIndex - 1, this->display->getLockedCursorPileIndex(), this->display->getVerticalCursorIndex());
         }
         else
         {
             // Foundation
+            result = this->logic->handleFoundationSelection(this->display->getLockedCursorPileIndex(), this->display->getVerticalCursorIndex());
+        }
+
+        // Flash the screen if there was an error
+        if (!result)
+        {
+            flash();
         }
     }
 }

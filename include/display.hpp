@@ -47,6 +47,8 @@ public:
 
     int getHorizCursorXIndex();
     int getVerticalCursorIndex();
+    int getLockedCursorPileIndex();
+    int is2ColFoundation();
 
 private:
     int width;
@@ -74,7 +76,7 @@ private:
     void drawFoundation(Suit);
 
     void drawCursor();
-    int drawCard(int, int, int, int, Card**[]);
+    int drawCard(int, int, int, int, Card*[]);
     void drawCardDivider(int, int, bool);
 
     string getSuitChar(Suit);

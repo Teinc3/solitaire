@@ -88,7 +88,6 @@ void Board::flipTopStackCards()
 
 void Board::addCardToStack(int stackIndex, Card* card)
 {
-    // Add a card to a stack
     this->stacks[stackIndex]->push_back(card);
     card->setIsFaceUp(true);
 }
