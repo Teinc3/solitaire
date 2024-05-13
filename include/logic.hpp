@@ -15,16 +15,18 @@ public:
     ~Logic();
 
     void handleUnusedCardSelection(int);
+    bool handleStackSelection(int, int, int);
+    bool handleFoundationSelection(int, int);
+
+private:
+    Board* board = nullptr;
+    Display* display = nullptr;
 
     bool stackToStack(int, int, int);
     bool stackToFoundation(int);
     bool unusedToStack(int);
     bool unusedToFoundation();
     bool foundationToStack(int, int);
-
-private:
-    Board* board = nullptr;
-    Display* display = nullptr;
 
     static bool canExistingStackAcceptCard(Card*, Card*);
     static bool canEmptyStackAcceptCard(Card*);

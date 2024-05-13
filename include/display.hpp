@@ -4,6 +4,8 @@
 #include "card.hpp"
 #include "game.hpp"
 
+#define RED 1
+
 constexpr int MIN_WIDTH = 71; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
 constexpr int HEIGHT = 21; //1+1+(3+13+1)+1+1
 constexpr int MIN_2COL_FOUNDATION_WIDTH = 78; //MIN_WIDTH+(2+5)
@@ -47,6 +49,8 @@ public:
 
     int getHorizCursorXIndex();
     int getVerticalCursorIndex();
+    int getLockedCursorPileIndex();
+    int is2ColFoundation();
 
 private:
     int width;
@@ -74,7 +78,7 @@ private:
     void drawFoundation(Suit);
 
     void drawCursor();
-    int drawCard(int, int, int, int, Card**[]);
+    int drawCard(int, int, int, int, Card*[]);
     void drawCardDivider(int, int, bool);
 
     string getSuitChar(Suit);
