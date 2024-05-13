@@ -104,7 +104,7 @@ bool Logic::handleFoundationSelection(int cursorPileIndex, int verticalCursorInd
 bool Logic::stackToStack(int cardIndex, int fromStackIndex, int toStackIndex)
 {
     // Get the stack length
-    int fromStackLength = this->board->getStackLength(toStackIndex);
+    int fromStackLength = this->board->getStackLength(fromStackIndex);
     if (cardIndex >= fromStackLength)
     {
         return false;
@@ -155,48 +155,61 @@ bool Logic::stackToStack(int cardIndex, int fromStackIndex, int toStackIndex)
 
 bool Logic::stackToFoundation(int stackIndex)
 {
-    // Get the stack length
-    int stackLength = this->board->getStackLength(stackIndex);
-    if (stackLength == 0)
+    bool hasTransferredCard = false;
+    
+    while (true)
     {
-        return false;
-    }
-
-    // Get the card that will be moved from the stack
-    Card* card = this->board->getCardFromStack(stackIndex, stackLength - 1);
-    if (!card->getIsFaceUp())
-    {
-        return false;
-    }
-
-    // Get suit of the card
-    int cardSuit = static_cast<int>(card->getSuit());
-    int foundationLength = this->board->getFoundationLength(cardSuit);
-    if (foundationLength == 0)
-    {
-        // If the foundation is empty, then we can move only Ace-cards
-        if (canEmptyFoundationAcceptCard(card) == false)
+        // Get the stack length
+        int stackLength = this->board->getStackLength(stackIndex);
+        if (stackLength == 0)
         {
-            return false;
+            break;
         }
+
+        // Get the card that will be moved from the stack
+        Card* card = this->board->getCardFromStack(stackIndex, stackLength - 1);
+        if (!card->getIsFaceUp())
+        {
+            break;
+        }
+
+        // Get suit of the card
+        int cardSuit = static_cast<int>(card->getSuit());
+        int foundationLength = this->board->getFoundationLength(cardSuit);
+        if (foundationLength == 0)
+        {
+            // If the foundation is empty, then we can move only Ace-cards
+            if (canEmptyFoundationAcceptCard(card) == false)
+            {
+                break;
+            }
+        }
+        else
+        {
+            // If the foundation is not empty, then we can move only cards that are in ascending order and same suit
+            Card* foundationTopCard = this->board->getCardFromFoundation(cardSuit, foundationLength - 1);
+            if (canExistingFoundationAcceptCard(foundationTopCard, card) == false)
+            {
+                break;
+            }
+        }
+
+        // Move the card to the foundation
+        this->board->removeCardFromStack(stackIndex);
+        this->board->addCardToFoundation(cardSuit, card);
+        hasTransferredCard = true;
+    }
+
+    if (hasTransferredCard)
+    {
+        // Unlock the cursor
+        this->display->updateCursorLock(true);
+        return true;
     }
     else
     {
-        // If the foundation is not empty, then we can move only cards that are in ascending order and same suit
-        Card* foundationTopCard = this->board->getCardFromFoundation(cardSuit, foundationLength - 1);
-        if (canExistingFoundationAcceptCard(foundationTopCard, card) == false)
-        {
-            return false;
-        }
+        return false;
     }
-
-    // Move the card to the foundation
-    this->board->removeCardFromStack(stackIndex);
-    this->board->addCardToFoundation(cardSuit, card);
-
-    // Unlock the cursor
-    this->display->updateCursorLock(true);
-    return true;
 }
 
 bool Logic::unusedToStack(int stackIndex)

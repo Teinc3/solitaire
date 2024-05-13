@@ -9,6 +9,9 @@ Display::Display(Game* game)
     noecho();
     curs_set(0);
 
+    start_color();
+    init_pair(RED, COLOR_RED, COLOR_BLACK);
+
     int max_y = 0, max_x = 0;
     getmaxyx(stdscr, max_y, max_x);  // Get the size of the window
 
@@ -278,7 +281,17 @@ void Display::drawUnusedPile()
             drawCardDivider(start_x, y++, true);
             mvprintw(y++, start_x, "| X |");
             drawCardDivider(start_x, y++, false);
+
+            if (currCard->getIsRed())
+            {
+                attron(COLOR_PAIR(RED));
+            }
             mvprintw(y++, start_x, "|%s%s%s|", getValueChar(currCard->getValue()).c_str(), currCard->getValue() == 10 ? "" : " ", getSuitChar(currCard->getSuit()).c_str());
+            if (currCard->getIsRed())
+            {
+                attroff(COLOR_PAIR(RED));
+            }
+            
             drawCardDivider(start_x, y, true);
         }
         else
@@ -291,12 +304,17 @@ void Display::drawUnusedPile()
 
 void Display::drawStack(int stackIndex)
 {
-    int start_x = 12 + 7 * stackIndex;
-    int start_y = 2;
+    int stackLength = this->game->getBoard()->getStackLength(stackIndex);
+    if (stackLength == 0)
+    {
+        return;
+    }
 
     int hiddenCount = 0;
     int visibleCount = 0;
-    int stackLength = this->game->getBoard()->getStackLength(stackIndex);
+    int start_x = 12 + 7 * stackIndex;
+    int start_y = 2;
+
     Card* stack[stackLength];
 
     for (int i = 0; i < stackLength; i++)
@@ -320,9 +338,19 @@ void Display::drawFoundation(Suit suitIndex)
 
     if (foundationLength == 0)
     {   
+        if (suitIndex % 2 == 0)
+        {
+            attron(COLOR_PAIR(RED));
+        }
+
         drawCardDivider(start_x, start_y, true);
         mvprintw(start_y + 1, start_x, "| %s |", getSuitChar(suitIndex).c_str());
         drawCardDivider(start_x, start_y + 2, true);
+
+        if (suitIndex % 2 == 0)
+        {
+            attroff(COLOR_PAIR(RED));
+        }
     }
     else
     {
@@ -330,7 +358,7 @@ void Display::drawFoundation(Suit suitIndex)
         Card* foundationCard = foundationLength == 0 ? nullptr : this->game->getBoard()->getCardFromFoundation(suitIndex, foundationLength - 1);
         Card* foundationCardArray[1] { foundationCard };
 
-        drawCard(start_x, start_y, 0, foundationLength, foundationCardArray);
+        drawCard(start_x, start_y, 0, foundationLength >= 1 ? 1 : 0, foundationCardArray);
     }
 }
 
@@ -421,7 +449,17 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
         int cardValue = card->getValue();
         Suit cardSuit = card->getSuit();
         
+        if (card->getIsRed())
+        {
+            attron(COLOR_PAIR(RED));
+        }
+
         mvprintw(current_y++, start_x, "|%s%s|", (getValueChar(cardValue) + (cardValue == 10 ? "" : " ")).c_str(), getSuitChar(cardSuit).c_str());
+
+        if (card->getIsRed())
+        {
+            attroff(COLOR_PAIR(RED));
+        }
     }
     if (visibleCount > 0)
     {
@@ -489,3 +527,4 @@ string Display::getValueChar(int value)
         return std::to_string(value);
     }
 }
+
