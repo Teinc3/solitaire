@@ -4,14 +4,29 @@
 #include "card.hpp"
 #include "game.hpp"
 
-#define RED 1
+#define GREEN 1
+#define RED 2
+#define BLACK 3
+#define YELLOW 4
+#define BLUE 5
 
-constexpr int MIN_WIDTH = 71; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
+/*
+#define RESET "\033[0m"
+#define BLACK "\033[30m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN "\033[36m"
+#define WHITE "\033[37m"
+*/
+
+constexpr int MIN_WIDTH = 69; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
 constexpr int HEIGHT = 21; //1+1+(3+13+1)+1+1
-constexpr int MIN_2COL_FOUNDATION_WIDTH = 78; //MIN_WIDTH+(2+5)
-
-constexpr int HORIZ_CURSOR_XPOS[10] = { 1, 11, 18, 25, 32, 39, 46, 53, 63, 70 };
-
+constexpr int MIN_2COL_FOUNDATION_WIDTH = 76; //MIN_WIDTH+(2+5)
+constexpr int COL_WIDTH = 7;
+constexpr int HORIZ_CURSOR_XPOS[10] = { 2, 10, 17, 24, 31, 38, 45, 52, 60, 67 };
 
 struct CursorPileInfo
 {
@@ -55,7 +70,6 @@ public:
 private:
     int width;
     bool use2ColFoundation;
-    bool useUnicode;
 
     int horizCursorXIndex;
     // If true, then when we change horizCursorXIndex, we do not also change the stackIndex

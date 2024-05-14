@@ -31,6 +31,10 @@ void Game::createGame()
     {
         cleanUp(false);
     }
+    else
+    {
+        this->isGamePreviouslyCreated = true;
+    }
 
     this->gameState = GameState::PLAYING;
 
@@ -128,6 +132,16 @@ void Game::handleInput()
         return;
     }
 
+    if (ch == 27)
+    {
+        // Escape key
+        if (this->gameState == GameState::PLAYING)
+        {
+            this->gameState = GameState::GAME_MENU;
+        }
+        return;
+    }
+
     if ((NCURSES == 1 && ch >= ArrowKey::DOWN && ch <= ArrowKey::RIGHT) || (NCURSES != 1 && ch >= ArrowKey::UP && ch <= ArrowKey::DOWN))
     {
         handleArrowKeys(static_cast<ArrowKey>(ch));
@@ -222,10 +236,16 @@ void Game::handleEnterKey()
         {
         case MenuOption::NEW_GAME:
             createGame();
-            clear();
             break;
         case MenuOption::QUIT:
-            this->isRunning = false;
+            if (this->gameState == GameState::MAIN_MENU)
+            {
+                this->isRunning = false;
+            }
+            else
+            {
+                this->gameState = GameState::MAIN_MENU;
+            }
             break;
         default:
             break;

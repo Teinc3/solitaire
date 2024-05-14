@@ -1,6 +1,34 @@
 #include "display.hpp"
 #include "board.hpp"
 
+void coloredPrint(int colorPair, int y, int x, string text)
+{
+    attron(COLOR_PAIR(colorPair));
+    mvprintw(y, x, text.c_str());
+    attroff(COLOR_PAIR(colorPair));
+}
+
+string formatString(string format, size_t argc, string argv[])
+{
+    // For every "%" in the format string, replace it with the next argument (if available)
+    std::ostringstream ss;
+    size_t argIndex = 0;
+    for (size_t i = 0; i < format.size(); i++)
+    {
+        if (format[i] == '~' && argIndex < argc)
+        {
+            ss << argv[argIndex];
+            argIndex++;
+        }
+        else
+        {
+            ss << format[i];
+        }
+    }
+
+    return ss.str();
+}
+
 Display::Display(Game* game)
 {   
     initscr();
@@ -10,7 +38,11 @@ Display::Display(Game* game)
     curs_set(0);
 
     start_color();
-    init_pair(RED, COLOR_RED, COLOR_BLACK);
+    init_pair(1, COLOR_GREEN, COLOR_BLACK); // Default text color
+    init_pair(RED, COLOR_RED, COLOR_BLACK); // Red text color
+    init_pair(BLACK, COLOR_WHITE, COLOR_BLACK); // White text color
+    init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK); // Yellow text color
+    init_pair(BLUE, COLOR_BLUE, COLOR_BLACK); // Blue text color
 
     int max_y = 0, max_x = 0;
     getmaxyx(stdscr, max_y, max_x);  // Get the size of the window
@@ -20,7 +52,7 @@ Display::Display(Game* game)
         // quit ncurses and print an error message
         endwin();
         game->setIsRunning(false);
-        std::cout << "Please increase the size of your terminal to least 71x21 in order to enjoy the game." << std::endl;
+        std::cout << std::endl << "Please increase the size of your terminal to at least" << MIN_WIDTH << "x" << HEIGHT << "." << std::endl;
         return;
     }
     else if (max_x < MIN_2COL_FOUNDATION_WIDTH)
@@ -31,12 +63,12 @@ Display::Display(Game* game)
     {
         this->use2ColFoundation = true;
     }
-    this->width = this->use2ColFoundation ? MIN_2COL_FOUNDATION_WIDTH : MIN_WIDTH;
 
+    this->width = this->use2ColFoundation ? MIN_2COL_FOUNDATION_WIDTH : MIN_WIDTH;
     this->game = game;
     this->horizCursorXIndex = 0;
     this->lockedCursorPileIndex = this->horizCursorXIndex;
-    this->useUnicode = false;
+    this->isLockedCursor = false;
 }
 
 Display::~Display()
@@ -205,13 +237,9 @@ void Display::drawBoundary()
     {
         for (int j = 0; j < this->width; j++)
         {
-            if (i == 0 || i == HEIGHT - 1)
+            if (i == 0 || i == HEIGHT - 1 || j == 0 || j == this->width - 1)
             {
-                mvprintw(i, j, "#");  // Print # on the top and bottom
-            }
-            else if (j == 0 || j == this->width - 1)
-            {
-                mvprintw(i, j, "*");  // Print * on the sides
+                coloredPrint(GREEN, i, j, "#");  // Print # at the boundary
             }
         }
     }
@@ -222,15 +250,21 @@ void Display::drawMenu(bool isGameMenu) {
     int start_x = (this->width - 27) / 2;  // Calculate the starting x position
 
     MenuOption menuOption = this->game->getMenuOption();
-    mvprintw(start_y + 0, start_x, "+=========================+");
-    mvprintw(start_y + 1, start_x, "|        SOLITAIRE        |");
-    mvprintw(start_y + 2, start_x, "|        by Teinc3        |");
-    mvprintw(start_y + 3, start_x, "+-------------------------+");
-    mvprintw(start_y + 4, start_x, "|    %s1. New Game%s      |", menuOption == MenuOption::NEW_GAME ? "> " : "  ", menuOption == MenuOption::NEW_GAME ? " <" : "  ");
-    mvprintw(start_y + 5, start_x, "|    %s2. %s%s Game%s     |", menuOption == MenuOption::LOAD_SAVE_GAME ? "> " : "  ", isGameMenu ? "Save" : "Load", "", menuOption == MenuOption::LOAD_SAVE_GAME ? " <" : "  ");
-    mvprintw(start_y + 6, start_x, "|   %s3. Information%s    |", menuOption == MenuOption::INFO ? "> " : "  ", menuOption == MenuOption::INFO ? " <" : "  ");
-    mvprintw(start_y + 7, start_x, "|      %s4. Quit%s        |", menuOption == MenuOption::QUIT ? "> " : "  ", menuOption == MenuOption::QUIT ? " <" : "  ");
-    mvprintw(start_y + 8, start_x, "+=========================+");
+    bool menuOptions[4] = { menuOption == MenuOption::NEW_GAME, menuOption == MenuOption::LOAD_SAVE_GAME, menuOption == MenuOption::INFO, menuOption == MenuOption::QUIT };
+    string arg1[2] = { menuOptions[0] ? ">" : " ", menuOptions[0] ? "<" : " " };
+    string arg2[3] = { menuOptions[1] ? ">" : " ", isGameMenu ? "Save" : "Load", menuOptions[1] ? "<" : " " };
+    string arg3[2] = { menuOptions[2] ? ">" : " ", menuOptions[2] ? "<" : " " };
+    string arg4[3] = { menuOptions[3] ? ">" : " ", isGameMenu ? "Main Menu" : "Quit Game", menuOptions[3] ? "<" : " " };
+    
+    coloredPrint(BLACK, start_y + 0, start_x, "+=========================+");
+    coloredPrint(RED, start_y + 1, start_x, "|        SOLITAIRE        |");
+    coloredPrint(RED, start_y + 2, start_x, "|        by Teinc3        |");
+    coloredPrint(BLACK, start_y + 3, start_x, "+-------------------------+");
+    coloredPrint(menuOptions[0] ? YELLOW : BLUE, start_y + 4, start_x, formatString("|     ~ 1. New Game ~     |", 2, arg1));
+    coloredPrint(menuOptions[1] ? YELLOW : BLUE, start_y + 5, start_x, formatString("|    ~ 2. ~ Game ~     |", 3, arg2));
+    coloredPrint(menuOptions[2] ? YELLOW : BLUE, start_y + 6, start_x, formatString("|   ~ 3. Information ~    |", 2, arg3));
+    coloredPrint(menuOptions[3] ? YELLOW : BLUE, start_y + 7, start_x, formatString("|    ~ 4. ~ ~     |", 3, arg4));
+    coloredPrint(BLACK, start_y + 8, start_x, "+=========================+");
 
     refresh();  // Refresh the screen to show the menu
 }
@@ -239,7 +273,7 @@ void Display::drawMenu(bool isGameMenu) {
 void Display::drawGameBoard()
 {
     drawDelimiter(9);
-    drawDelimiter(61);
+    drawDelimiter(59);
 
     drawUnusedPile();
     for (int i = 0; i < STACK_COUNT; i++)
@@ -258,13 +292,13 @@ void Display::drawDelimiter(int x)
 {
     for (int i = 1; i < HEIGHT - 1; i++)
     {
-        mvprintw(i, x, "|");
+        coloredPrint(GREEN, i, x, "|");
     }
 }
 
 void Display::drawUnusedPile()
 {
-    int start_x = 2;
+    int start_x = HORIZ_CURSOR_XPOS[0] + 1;
     int y = 2;
 
     int hiddenCount = this->game->getBoard()->getRemainingUnusedCardCount();
@@ -279,18 +313,11 @@ void Display::drawUnusedPile()
         if (nextCard == nullptr)
         {   
             drawCardDivider(start_x, y++, true);
-            mvprintw(y++, start_x, "| X |");
+            coloredPrint(GREEN, y++, start_x, "| X |");
             drawCardDivider(start_x, y++, false);
 
-            if (currCard->getIsRed())
-            {
-                attron(COLOR_PAIR(RED));
-            }
-            mvprintw(y++, start_x, "|%s%s%s|", getValueChar(currCard->getValue()).c_str(), currCard->getValue() == 10 ? "" : " ", getSuitChar(currCard->getSuit()).c_str());
-            if (currCard->getIsRed())
-            {
-                attroff(COLOR_PAIR(RED));
-            }
+            string args[3] = { getValueChar(currCard->getValue()).c_str(), currCard->getValue() == 10 ? "" : " ", getSuitChar(currCard->getSuit()).c_str() };
+            coloredPrint(currCard->getIsRed() ? RED : BLACK, y++, start_x, formatString("|~~~|", 3, args));
             
             drawCardDivider(start_x, y, true);
         }
@@ -312,7 +339,7 @@ void Display::drawStack(int stackIndex)
 
     int hiddenCount = 0;
     int visibleCount = 0;
-    int start_x = 12 + 7 * stackIndex;
+    int start_x = HORIZ_CURSOR_XPOS[1] + 1 + COL_WIDTH * stackIndex;
     int start_y = 2;
 
     Card* stack[stackLength];
@@ -333,24 +360,15 @@ void Display::drawStack(int stackIndex)
 void Display::drawFoundation(Suit suitIndex)
 {
     int foundationLength = this->game->getBoard()->getFoundationLength(suitIndex);
-    int start_x = 64 + 7 * (this->use2ColFoundation ? suitIndex % 2 : 0);
+    int start_x = HORIZ_CURSOR_XPOS[8] + 1 + COL_WIDTH * (this->use2ColFoundation ? suitIndex % 2 : 0);
     int start_y = 2 + 4 * (this->use2ColFoundation ? suitIndex / 2 : suitIndex);
 
     if (foundationLength == 0)
     {   
-        if (suitIndex % 2 == 0)
-        {
-            attron(COLOR_PAIR(RED));
-        }
-
         drawCardDivider(start_x, start_y, true);
-        mvprintw(start_y + 1, start_x, "| %s |", getSuitChar(suitIndex).c_str());
+        string args[1] = { getSuitChar(suitIndex).c_str() };
+        coloredPrint(suitIndex % 2 == 0 ? RED : BLACK, start_y + 1, start_x, formatString("| ~ |", 1, args));
         drawCardDivider(start_x, start_y + 2, true);
-
-        if (suitIndex % 2 == 0)
-        {
-            attroff(COLOR_PAIR(RED));
-        }
     }
     else
     {
@@ -370,14 +388,14 @@ void Display::drawCursor()
 
     if (this->horizCursorXIndex <= STACK_COUNT)
     {
-        mvprintw(cursorPile.startingY - 1, baseX + 2, "vvv");
-        mvprintw(cursorPile.startingY + cursorPile.yHeight, baseX + 2, "^^^");
+        coloredPrint(YELLOW, cursorPile.startingY - 1, baseX + 2, "vvv");
+        coloredPrint(YELLOW, cursorPile.startingY + cursorPile.yHeight, baseX + 2, "^^^");
     }
     else
     {
         int yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex * (cursorPile.yHeight + 1);
-        mvprintw(yPos - 2, baseX + 2, "vvv");
-        mvprintw(yPos + 2, baseX + 2, "^^^");
+        coloredPrint(YELLOW, yPos - 2, baseX + 2, "vvv");
+        coloredPrint(YELLOW, yPos + 2, baseX + 2, "^^^");
     }
 
     // Now draw vertical cursors
@@ -415,8 +433,8 @@ void Display::drawCursor()
         yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex * (cursorPile.yHeight + 1);
     }
     // We will want to use pileCursors to check the height of the stack and print the cursor at the appropriate position
-    mvprintw(yPos, baseX, ">");
-    mvprintw(yPos, baseX + 6, "<");
+    coloredPrint(this->isLockedCursor ? YELLOW : BLUE, yPos, baseX, ">");
+    coloredPrint(this->isLockedCursor ? YELLOW : BLUE, yPos, baseX + 6, "<");
 }
 
 int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card* cards[])
@@ -440,7 +458,7 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
         {
             hiddenText = "|" + std::to_string(hiddenCount) + "?|";
         }
-        mvprintw(current_y++, start_x, hiddenText.c_str());
+        coloredPrint(GREEN, current_y++, start_x, hiddenText.c_str());
         drawCardDivider(start_x, current_y++, visibleCount <= 0);
     }
     for (int i = 0; i < visibleCount; i++)
@@ -448,18 +466,9 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
         Card* card = cards[i];
         int cardValue = card->getValue();
         Suit cardSuit = card->getSuit();
-        
-        if (card->getIsRed())
-        {
-            attron(COLOR_PAIR(RED));
-        }
 
-        mvprintw(current_y++, start_x, "|%s%s|", (getValueChar(cardValue) + (cardValue == 10 ? "" : " ")).c_str(), getSuitChar(cardSuit).c_str());
-
-        if (card->getIsRed())
-        {
-            attroff(COLOR_PAIR(RED));
-        }
+        string args[2] = { (getValueChar(cardValue) + (cardValue == 10 ? "" : " ")).c_str(), getSuitChar(cardSuit).c_str() };
+        coloredPrint(card->getIsRed() ? RED : BLACK, current_y++, start_x, formatString("|~~|", 2, args));
     }
     if (visibleCount > 0)
     {
@@ -471,43 +480,24 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
 
 void Display::drawCardDivider(int x, int y, bool isEdge)
 {   
-    mvprintw(y, x, "+%s+", isEdge ? "===" : "---");
+    string args[1] = { isEdge ? "===" : "---" };
+    coloredPrint(GREEN, y, x, formatString("+~+", 1, args));
 };
 
 string Display::getSuitChar(Suit suit)
 {   
-    if (useUnicode)
-    {    
-        switch (suit)
-        {
-        case Suit::DIAMONDS:
-            return "♦";
-        case Suit::CLUBS:
-            return "♣";
-        case Suit::HEARTS:
-            return "♥";
-        case Suit::SPADES:
-            return "♠";
-        default:
-            return "";
-        }
-    }
-    else
+    switch (suit)
     {
-        switch (suit)
-        {
-        case Suit::DIAMONDS:
-            return "D";
-        case Suit::CLUBS:
-            return "C";
-        case Suit::HEARTS:
-            return "H";
-        case Suit::SPADES:
-            return "S";
-        default:
-            return "";
-        }
-    
+    case Suit::DIAMONDS:
+        return "D";
+    case Suit::CLUBS:
+        return "C";
+    case Suit::HEARTS:
+        return "H";
+    case Suit::SPADES:
+        return "S";
+    default:
+        return "";
     }
 }
 

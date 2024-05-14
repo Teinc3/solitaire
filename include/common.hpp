@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #ifdef _WIN32
     #include <curses.h>
