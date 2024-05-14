@@ -6,6 +6,8 @@ A simple solitaire game written in C++ that can be played in the terminal.
 
 This game was built solo to inch (mock) freeriders for being completely useless in a group project (Course: COMP2113/ENGG1340)
 
+Although there are insane amounts of antipatterns in the code... So I guess I'm not doing much better.
+
 ## Todo
 - Complete `Persistence` class for saving and loading games
 - Change color function to allow multiple colors within a string 
