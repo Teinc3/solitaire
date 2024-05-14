@@ -12,12 +12,55 @@ Logic::~Logic()
     this->display = nullptr;
 }
 
+// First check isGameWon before checking canAutoFinish
+bool Logic::isGameWon()
+{
+    // Check if all the foundation piles are full
+    for (int i = 0; i < FOUNDATION_COUNT; i++)
+    {
+        if (this->board->getFoundationLength(i) != MAX_VALUE)
+        {
+            return false;
+        }
+    }
+
+    // If all the foundation piles are full, then the game is won
+    return true;
+}
+
+bool Logic::canAutoFinish()
+{
+    // No more unused cards, and every card in the stack is face up
+    if (this->board->getCurrentUnusedCard() != nullptr || this->board->getNextUnusedCard() != nullptr)
+    {
+        return false;
+    }
+    
+    for (int i = 0; i < STACK_COUNT; i++)
+    {
+        int stackLength = this->board->getStackLength(i);
+        if (stackLength == 0)
+        {
+            continue;
+        }
+
+        Card* bottomCard = this->board->getCardFromStack(i, 0);
+        if (!bottomCard->getIsFaceUp())
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void Logic::handleUnusedCardSelection(int verticalCursorIndex)
 {
     // If Cursor is on ?/X, shift to next card
     if (verticalCursorIndex == 0)
     {
         this->board->shiftNextUnusedCard();
+        this->board->addMoves();
     }
     else // lock or unlock cursor
     {
@@ -150,6 +193,7 @@ bool Logic::stackToStack(int cardIndex, int fromStackIndex, int toStackIndex)
     }
     // Unlock the cursor
     this->display->updateCursorLock(true);
+    this->board->addMoves();
     return true;
 }
 
@@ -204,6 +248,7 @@ bool Logic::stackToFoundation(int stackIndex)
     {
         // Unlock the cursor
         this->display->updateCursorLock(true);
+        this->board->addMoves();
         return true;
     }
     else
@@ -240,6 +285,7 @@ bool Logic::unusedToStack(int stackIndex)
 
     // Unlock the cursor
     this->display->updateCursorLock(true);
+    this->board->addMoves();
     return true;
 }
 
@@ -279,6 +325,7 @@ bool Logic::unusedToFoundation()
 
     // Unlock the cursor
     this->display->updateCursorLock(true);
+    this->board->addMoves();
     return true;
 }
 
@@ -322,6 +369,7 @@ bool Logic::foundationToStack(int foundationIndex, int stackIndex)
 
     // Unlock the cursor
     this->display->updateCursorLock(true);
+    this->board->addMoves();
     return true;
 }
 

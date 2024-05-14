@@ -52,7 +52,7 @@ Display::Display(Game* game)
         // quit ncurses and print an error message
         endwin();
         game->setIsRunning(false);
-        std::cout << std::endl << "Please increase the size of your terminal to at least" << MIN_WIDTH << "x" << HEIGHT << "." << std::endl;
+        std::cout << std::endl << "Please increase the size of your terminal to at least " << MIN_WIDTH << "x" << HEIGHT << "." << std::endl;
         return;
     }
     else if (max_x < MIN_2COL_FOUNDATION_WIDTH)
@@ -66,9 +66,7 @@ Display::Display(Game* game)
 
     this->width = this->use2ColFoundation ? MIN_2COL_FOUNDATION_WIDTH : MIN_WIDTH;
     this->game = game;
-    this->horizCursorXIndex = 0;
-    this->lockedCursorPileIndex = this->horizCursorXIndex;
-    this->isLockedCursor = false;
+    onNewGame();
 }
 
 Display::~Display()
@@ -78,6 +76,20 @@ Display::~Display()
     endwin();  // End curses mode
 
     this->game = nullptr;
+}
+
+void Display::onNewGame()
+{
+    this->horizCursorXIndex = 0;
+    this->lockedCursorPileIndex = this->horizCursorXIndex;
+    this->isLockedCursor = false;
+    this->currentMessageIndex = 0;
+
+    // Reset pilecursors
+    for (int i = 0; i < 1 + STACK_COUNT + 2; i++)
+    {
+        this->pileCursors[i] = CursorPileInfo();
+    }
 }
 
 void Display::render()
@@ -163,6 +175,10 @@ void Display::clampCursorPiles()
             }
 
             maxVal = (hasHiddenCard ? 1 : 0) + visibleCount - 1;
+            if (maxVal < 0)
+            {
+                maxVal = 0;
+            }
             yHeight = (hasHiddenCard ? 2 : 0) + visibleCount + 2;
         }
         else
@@ -230,14 +246,34 @@ int Display::is2ColFoundation()
     return this->use2ColFoundation;
 }
 
+void Display::setMessage(int messageIndex)
+{
+    this->currentMessageIndex = messageIndex;
+}
+
+bool Display::resetMessage(bool isBackspace)
+{
+    if (this->currentMessageIndex == 0 || (!isBackspace && this->currentMessageIndex != 3))
+    {
+        return false;
+    }
+
+    this->currentMessageIndex = 0;
+    if (!isBackspace) // Auto finish
+    {
+        this->game->finishGame();
+    }
+    return true;
+}
+
 void Display::drawBoundary()
 {
 
-    for (int i = 0; i < HEIGHT; i++)
+    for (int i = 0; i < HEIGHT - 1; i++)
     {
         for (int j = 0; j < this->width; j++)
         {
-            if (i == 0 || i == HEIGHT - 1 || j == 0 || j == this->width - 1)
+            if (i == 0 || i == HEIGHT - 2 || j == 0 || j == this->width - 1)
             {
                 coloredPrint(GREEN, i, j, "#");  // Print # at the boundary
             }
@@ -246,24 +282,24 @@ void Display::drawBoundary()
 }
 
 void Display::drawMenu(bool isGameMenu) {
-    int start_y = (HEIGHT - 9) / 2;  // Calculate the starting y position
+    int start_y = (HEIGHT - 10) / 2;  // Calculate the starting y position
     int start_x = (this->width - 27) / 2;  // Calculate the starting x position
 
     MenuOption menuOption = this->game->getMenuOption();
     bool menuOptions[4] = { menuOption == MenuOption::NEW_GAME, menuOption == MenuOption::LOAD_SAVE_GAME, menuOption == MenuOption::INFO, menuOption == MenuOption::QUIT };
-    string arg1[2] = { menuOptions[0] ? ">" : " ", menuOptions[0] ? "<" : " " };
+    string arg1[3] = { menuOptions[0] ? ">" : " ", isGameMenu ? "Continue" : "New Game", menuOptions[0] ? "<" : " " };
     string arg2[3] = { menuOptions[1] ? ">" : " ", isGameMenu ? "Save" : "Load", menuOptions[1] ? "<" : " " };
     string arg3[2] = { menuOptions[2] ? ">" : " ", menuOptions[2] ? "<" : " " };
-    string arg4[3] = { menuOptions[3] ? ">" : " ", isGameMenu ? "Main Menu" : "Quit Game", menuOptions[3] ? "<" : " " };
+    string arg4[3] = { menuOptions[3] ? ">" : " ", isGameMenu ? "Stop" : "Quit", menuOptions[3] ? "<" : " " };
     
     coloredPrint(BLACK, start_y + 0, start_x, "+=========================+");
     coloredPrint(RED, start_y + 1, start_x, "|        SOLITAIRE        |");
     coloredPrint(RED, start_y + 2, start_x, "|        by Teinc3        |");
     coloredPrint(BLACK, start_y + 3, start_x, "+-------------------------+");
-    coloredPrint(menuOptions[0] ? YELLOW : BLUE, start_y + 4, start_x, formatString("|     ~ 1. New Game ~     |", 2, arg1));
+    coloredPrint(menuOptions[0] ? YELLOW : BLUE, start_y + 4, start_x, formatString("|     ~ 1. ~ ~     |", 3, arg1));
     coloredPrint(menuOptions[1] ? YELLOW : BLUE, start_y + 5, start_x, formatString("|    ~ 2. ~ Game ~     |", 3, arg2));
     coloredPrint(menuOptions[2] ? YELLOW : BLUE, start_y + 6, start_x, formatString("|   ~ 3. Information ~    |", 2, arg3));
-    coloredPrint(menuOptions[3] ? YELLOW : BLUE, start_y + 7, start_x, formatString("|    ~ 4. ~ ~     |", 3, arg4));
+    coloredPrint(menuOptions[3] ? YELLOW : BLUE, start_y + 7, start_x, formatString("|    ~ 4. ~ Game ~     |", 3, arg4));
     coloredPrint(BLACK, start_y + 8, start_x, "+=========================+");
 
     refresh();  // Refresh the screen to show the menu
@@ -286,11 +322,12 @@ void Display::drawGameBoard()
     }
 
     drawCursor();
+    drawMessage();
 }
 
 void Display::drawDelimiter(int x)
 {
-    for (int i = 1; i < HEIGHT - 1; i++)
+    for (int i = 1; i < HEIGHT - 2; i++)
     {
         coloredPrint(GREEN, i, x, "|");
     }
@@ -305,7 +342,10 @@ void Display::drawUnusedPile()
     Card* currCard = this->game->getBoard()->getCurrentUnusedCard();
     if (currCard == nullptr)
     {
-        drawCard(start_x, y, hiddenCount, 0, nullptr);
+        if (hiddenCount > 0)
+        {
+            drawCard(start_x, y, hiddenCount, 0, nullptr);
+        }
     }
     else
     {
@@ -437,6 +477,30 @@ void Display::drawCursor()
     coloredPrint(this->isLockedCursor ? YELLOW : BLUE, yPos, baseX + 6, "<");
 }
 
+void Display::drawMessage()
+{
+    int y = HEIGHT - 1;
+    // Draw moves at x = 62
+    int moves = this->game->getBoard()->getMoves();
+    string message = "Moves: " + std::to_string(moves);
+
+    coloredPrint(BLACK, y, MOVE_MSG_STARTING_X, message);
+
+    // Draw the message (if any)
+    if (this->currentMessageIndex == 1)
+    {
+        coloredPrint(YELLOW, y, MSG_STARTING_X, string(MESSAGES[1]) + string(MESSAGES[2]));
+    }
+    else if (this->currentMessageIndex == 3)
+    {
+        coloredPrint(YELLOW, y, MSG_STARTING_X, string(MESSAGES[3]));
+    }
+    else if (this->currentMessageIndex >= 4) // Errors
+    {
+        coloredPrint(RED, y, MSG_STARTING_X, string(MESSAGES[4]) + string(MESSAGES[2]));
+    }
+}
+
 int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCount, Card* cards[])
 {   
     int current_y = start_y;
@@ -517,4 +581,3 @@ string Display::getValueChar(int value)
         return std::to_string(value);
     }
 }
-

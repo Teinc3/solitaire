@@ -10,6 +10,7 @@ public:
     ~Board();
 
     void cleanup();
+    void onNewGame();
     void distributeCards(Card* [MAX_CARDS]);
 
     void flipTopStackCards();
@@ -30,11 +31,15 @@ public:
     Card* getNextUnusedCard();
     Card* shiftNextUnusedCard();
     int getRemainingUnusedCardCount();
+
+    int getMoves();
+    void addMoves();
     
 private:
+    int moves;
     int unusedCardIndex;
 
     vector<Card*>* stacks[STACK_COUNT];
     vector<Card*>* foundations[FOUNDATION_COUNT];
-    vector<Card*> unusedCards;
+    vector<Card*>* unusedCards;
 };

@@ -2,23 +2,7 @@
 
 Board::Board()
 {
-    this->unusedCardIndex = -1;
-
-    // Initialize 7 stacks
-    for (int i = 0; i < STACK_COUNT; i++)
-    {
-        this->stacks[i] = new vector<Card*>;
-    }
-
-    // Initialize 4 foundations and reserve 13 spaces for each
-    for (int i = 0; i < FOUNDATION_COUNT; i++)
-    {
-        this->foundations[i] = new vector<Card*>;
-        this->foundations[i]->reserve(MAX_VALUE);
-    }
-
-    // Reserve 24 card pointers for the unusedCards vector
-    this->unusedCards.reserve(RESERVED_CARDS);
+    onNewGame();
 }
 
 Board::~Board()
@@ -41,6 +25,32 @@ void Board::cleanup()
         delete this->foundations[i];
         this->foundations[i] = nullptr;
     }
+
+    delete this->unusedCards;
+    this->unusedCards = nullptr;
+}
+
+void Board::onNewGame()
+{
+    this->unusedCardIndex = -1;
+    this->moves = 0;
+
+    // Initialize 7 stacks
+    for (int i = 0; i < STACK_COUNT; i++)
+    {
+        this->stacks[i] = new vector<Card*>;
+    }
+
+    // Initialize 4 foundations and reserve 13 spaces for each
+    for (int i = 0; i < FOUNDATION_COUNT; i++)
+    {
+        this->foundations[i] = new vector<Card*>;
+        this->foundations[i]->reserve(MAX_VALUE);
+    }
+
+    // Reserve 24 card pointers for the unusedCards vector
+    this->unusedCards = new vector<Card*>;
+    this->unusedCards->reserve(RESERVED_CARDS);
 }
 
 void Board::distributeCards(Card* deck[MAX_CARDS])
@@ -66,7 +76,7 @@ void Board::distributeCards(Card* deck[MAX_CARDS])
     // Distribute the rest of the cards to the unusedCards vector
     for (; cardIndex < MAX_CARDS; cardIndex++)
     {
-        this->unusedCards.push_back(deck[cardIndex]);
+        this->unusedCards->push_back(deck[cardIndex]);
     }
 }
 
@@ -107,9 +117,10 @@ Card* Board::removeUnusedCard()
     {
         return nullptr;
     }
-    Card* card = this->unusedCards.at(this->unusedCardIndex);
-    this->unusedCards.erase(this->unusedCards.begin() + this->unusedCardIndex);
+    Card* card = this->unusedCards->at(this->unusedCardIndex);
+    this->unusedCards->erase(this->unusedCards->begin() + this->unusedCardIndex);
     unusedCardIndex--;
+    
     return card;
 }
 
@@ -125,6 +136,7 @@ Card* Board::removeCardFromFoundation(int foundationIndex)
     // Remove a card from a foundation
     Card* card = this->foundations[foundationIndex]->back();
     this->foundations[foundationIndex]->pop_back();
+
     return card;
 }
 
@@ -160,17 +172,17 @@ Card* Board::getCurrentUnusedCard()
     {
         return nullptr;
     }
-    return this->unusedCards.at(this->unusedCardIndex);
+    return this->unusedCards->at(this->unusedCardIndex);
 }
 
 Card* Board::getNextUnusedCard()
 {
     // Get the next unused card
-    if (this->unusedCardIndex + 1 >= static_cast<int>(this->unusedCards.size()))
+    if (this->unusedCardIndex + 1 >= static_cast<int>(this->unusedCards->size()))
     {
         return nullptr;
     }
-    return this->unusedCards.at(this->unusedCardIndex + 1);
+    return this->unusedCards->at(this->unusedCardIndex + 1);
 }
 
 Card* Board::shiftNextUnusedCard()
@@ -178,23 +190,34 @@ Card* Board::shiftNextUnusedCard()
     // Hide the last card
     if (this->unusedCardIndex != -1)
     {
-        this->unusedCards.at(this->unusedCardIndex)->setIsFaceUp(false);
+        this->unusedCards->at(this->unusedCardIndex)->setIsFaceUp(false);
     }
     
     this->unusedCardIndex++;
-    if (this->unusedCardIndex >= static_cast<int>(this->unusedCards.size()))
+    if (this->unusedCardIndex >= static_cast<int>(this->unusedCards->size()))
     {
         this->unusedCardIndex = -1;
         return nullptr;
     }
     
-    Card* card = this->unusedCards.at(this->unusedCardIndex);
+    Card* card = this->unusedCards->at(this->unusedCardIndex);
     card->setIsFaceUp(true);
+
     return card;
 }
 
 int Board::getRemainingUnusedCardCount()
 {
     // Get the remaining unused card count
-    return this->unusedCards.size() - this->unusedCardIndex - 1;
+    return this->unusedCards->size() - this->unusedCardIndex - 1;
+}
+
+int Board::getMoves()
+{
+    return this->moves;
+}
+
+void Board::addMoves()
+{
+    this->moves++;
 }

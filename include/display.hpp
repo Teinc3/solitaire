@@ -23,10 +23,22 @@
 */
 
 constexpr int MIN_WIDTH = 69; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
-constexpr int HEIGHT = 21; //1+1+(3+13+1)+1+1
+constexpr int HEIGHT = 22; //1+1+(3+13+1)+1+1+1
 constexpr int MIN_2COL_FOUNDATION_WIDTH = 76; //MIN_WIDTH+(2+5)
 constexpr int COL_WIDTH = 7;
 constexpr int HORIZ_CURSOR_XPOS[10] = { 2, 10, 17, 24, 31, 38, 45, 52, 60, 67 };
+
+constexpr int MSG_STARTING_X = 2;
+constexpr int MOVE_MSG_STARTING_X = 62;
+constexpr int MAX_MSG_LENGTH = 56;
+constexpr const char* MESSAGES[] = {
+    "", // No message
+    "Congratulations! You won!", // Yellow
+    " (Backspace to Dismiss)",
+    "Auto Finish (Enter to Confirm)", // Yellow
+    "Invalid move", // Red
+    // Add more invalid moves here, so index will not fuck up
+};
 
 struct CursorPileInfo
 {
@@ -55,6 +67,8 @@ public:
     Display(Game*);
     ~Display();
 
+    void onNewGame();
+
     void render();
 
     void updateHorizCursorX(bool);
@@ -66,6 +80,9 @@ public:
     int getVerticalCursorIndex();
     int getLockedCursorPileIndex();
     int is2ColFoundation();
+
+    void setMessage(int);
+    bool resetMessage(bool);
 
 private:
     int width;
@@ -79,6 +96,8 @@ private:
     // Also an array that keeps track of heights of each stack
     CursorPileInfo pileCursors[1 + STACK_COUNT + 2];
 
+    int currentMessageIndex;
+
     Game* game = nullptr;
 
     void drawBoundary();
@@ -90,6 +109,7 @@ private:
     void drawUnusedPile();
     void drawStack(int);
     void drawFoundation(Suit);
+    void drawMessage();
 
     void drawCursor();
     int drawCard(int, int, int, int, Card*[]);

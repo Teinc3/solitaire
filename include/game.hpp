@@ -24,6 +24,7 @@ public:
     void createCards();
     void deleteCards();
     void shuffleCards();
+    void finishGame();
 
     void update();
 
@@ -41,6 +42,8 @@ public:
 private:
     bool isRunning;
     bool isGamePreviouslyCreated;
+    bool hasAlreadyWon;
+    bool hasAlreadyPromptedAutoFinished;
     GameState gameState;
     MenuOption menuOption;
 

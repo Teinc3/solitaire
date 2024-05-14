@@ -14,6 +14,9 @@ public:
     Logic(Board*, Display*);
     ~Logic();
 
+    bool isGameWon();
+    bool canAutoFinish();
+
     void handleUnusedCardSelection(int);
     bool handleStackSelection(int, int, int);
     bool handleFoundationSelection(int, int);

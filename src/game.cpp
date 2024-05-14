@@ -37,6 +37,11 @@ void Game::createGame()
     }
 
     this->gameState = GameState::PLAYING;
+    this->hasAlreadyWon = false;
+    this->hasAlreadyPromptedAutoFinished = false;
+
+    this->display->onNewGame();
+    this->board->onNewGame();
 
     createCards();
     shuffleCards();
@@ -98,21 +103,55 @@ void Game::shuffleCards()
     }
 }
 
+void Game::finishGame()
+{
+    // Clean up every stack
+    for (int i = 0; i < STACK_COUNT; i++)
+    {
+        int stackLength = this->board->getStackLength(i);
+        for (int j = 0; j < stackLength; j++)
+        {
+            Card* card = this->board->removeCardFromStack(i);
+            if (card->getValue() == MAX_VALUE)
+            {
+                this->board->addCardToFoundation(card->getSuit(), card);
+            }
+        }
+    }
+
+    this->hasAlreadyWon = true;
+    this->display->setMessage(1);
+}
+
 void Game::update()
 {
     // Update the game
-    switch (this->gameState)
+    if (this->gameState != GameState::PLAYING)
     {
-    case GameState::MAIN_MENU:
-        // Handle main menu logic here
-        break;
-    case GameState::PLAYING:
-        this->board->flipTopStackCards();
-        this->display->clampCursorPiles();
-        break;
-    case GameState::GAME_MENU:
-        // Handle game menu logic here
-        break;
+        return;
+    }
+
+    this->board->flipTopStackCards();
+    this->display->clampCursorPiles();
+
+    // Logic checks
+    if (this->logic->isGameWon())
+    {
+        if (this->hasAlreadyWon)
+        {
+            return;
+        }
+        this->display->setMessage(1);
+        this->hasAlreadyWon = true;
+    }
+    else if (this->logic->canAutoFinish())
+    {
+        if (this->hasAlreadyPromptedAutoFinished == true)
+        {
+            return;
+        }
+        this->display->setMessage(3);
+        this->hasAlreadyPromptedAutoFinished = true;
     }
 }
 
@@ -132,9 +171,14 @@ void Game::handleInput()
         return;
     }
 
-    if (ch == 27)
-    {
-        // Escape key
+    if (ch == 8 || ch == 127)
+    {   
+        // Backspace/del key
+        if (this->display->resetMessage(true))
+        {
+            return;
+        }
+
         if (this->gameState == GameState::PLAYING)
         {
             this->gameState = GameState::GAME_MENU;
@@ -145,12 +189,6 @@ void Game::handleInput()
     if ((NCURSES == 1 && ch >= ArrowKey::DOWN && ch <= ArrowKey::RIGHT) || (NCURSES != 1 && ch >= ArrowKey::UP && ch <= ArrowKey::DOWN))
     {
         handleArrowKeys(static_cast<ArrowKey>(ch));
-        return;
-    }
-
-    if (ch == 3) // Ctrl + C
-    {
-        this->isRunning = false;
         return;
     }
 }
@@ -229,20 +267,31 @@ void Game::handleArrowKeys(ArrowKey arrowKey)
 }
 
 void Game::handleEnterKey()
-{
+{   
+    if (this->display->resetMessage(false))
+    {
+        return;
+    }
     if (this->gameState != GameState::PLAYING)
     {
         switch (this->menuOption)
         {
         case MenuOption::NEW_GAME:
-            createGame();
+            if (this->gameState == GameState::MAIN_MENU)
+            {
+                createGame();
+            }
+            else // Continue
+            {
+                this->gameState = GameState::PLAYING;
+            }
             break;
         case MenuOption::QUIT:
-            if (this->gameState == GameState::MAIN_MENU)
+            if (this->gameState == GameState::MAIN_MENU) // Quit Game
             {
                 this->isRunning = false;
             }
-            else
+            else // Stop Game
             {
                 this->gameState = GameState::MAIN_MENU;
             }
@@ -276,6 +325,8 @@ void Game::handleEnterKey()
         if (!result)
         {
             flash();
+            this->display->updateCursorLock(true);
+            this->display->setMessage(4);
         }
     }
 }
