@@ -40,6 +40,32 @@ constexpr int STACK_COUNT = 7;
 constexpr int FOUNDATION_COUNT = 4;
 constexpr int RESERVED_CARDS = 24;
 
+constexpr int COL_COUNT_2COL = 1 + STACK_COUNT + 2;
+constexpr int COL_COUNT_1COL = 1 + STACK_COUNT + 1;
+
+constexpr int HORIZ_CURSOR_XPOS[10] = { 2, 10, 17, 24, 31, 38, 45, 52, 60, 67 };
+
+#define GREEN 1
+#define RED 2
+#define BLACK 3
+#define YELLOW 4
+#define BLUE 5
+
+/*
+#define RESET "\033[0m"
+#define BLACK "\033[30m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN "\033[36m"
+#define WHITE "\033[37m"
+*/
+
+void coloredPrint(int, int, int, string);
+string formatString(string, size_t, string[]);
+
 enum Suit
 {
     DIAMONDS,

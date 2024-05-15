@@ -132,7 +132,7 @@ void Game::update()
     }
 
     this->board->flipTopStackCards();
-    this->display->clampCursorPiles();
+    this->display->getCursor()->clampCursorPiles();
 
     // Logic checks
     if (this->logic->isGameWon())
@@ -236,7 +236,7 @@ void Game::handleArrowKeys(ArrowKey arrowKey)
         else
         {
             // Decrease the vertical index of the cursor
-            this->display->updateVerticalCursorIndex(true);
+            this->display->getCursor()->updateVerticalCursorIndex(true);
         }
         break;
     case ArrowKey::DOWN:
@@ -246,19 +246,19 @@ void Game::handleArrowKeys(ArrowKey arrowKey)
         }
         else
         {
-            this->display->updateVerticalCursorIndex(false);
+            this->display->getCursor()->updateVerticalCursorIndex(false);
         }
         break;
     case ArrowKey::RIGHT:
         if (this->gameState == GameState::PLAYING)
         {
-            this->display->updateHorizCursorX(true);
+            this->display->getCursor()->updateHorizCursorX(true);
         }
         break;
     case ArrowKey::LEFT:
         if (this->gameState == GameState::PLAYING)
         {
-            this->display->updateHorizCursorX(false);
+            this->display->getCursor()->updateHorizCursorX(false);
         }
         break;
     default:
@@ -303,29 +303,29 @@ void Game::handleEnterKey()
     else
     {
         // Usually confirming an action.
-        int horizCursorXIndex = this->display->getHorizCursorXIndex();
+        int horizCursorXIndex = this->display->getCursor()->getHorizCursorXIndex();
         bool result;
         if (horizCursorXIndex == 0) // Unused pile
         {
-            this->logic->handleUnusedCardSelection(this->display->getVerticalCursorIndex());
+            this->logic->handleUnusedCardSelection(this->display->getCursor()->getVerticalCursorIndex());
             result = true; // Unless sth weird happens, such as cursor is on an emptied unused pile, shouldnt have errors
         }
         else if (horizCursorXIndex >= 1 && horizCursorXIndex <= STACK_COUNT)
         {
             // Stack
-            result = this->logic->handleStackSelection(horizCursorXIndex - 1, this->display->getLockedCursorPileIndex(), this->display->getVerticalCursorIndex());
+            result = this->logic->handleStackSelection(horizCursorXIndex - 1, this->display->getCursor()->getLockedCursorPileIndex(), this->display->getCursor()->getVerticalCursorIndex());
         }
         else
         {
             // Foundation
-            result = this->logic->handleFoundationSelection(this->display->getLockedCursorPileIndex(), this->display->getVerticalCursorIndex());
+            result = this->logic->handleFoundationSelection(this->display->getCursor()->getLockedCursorPileIndex(), this->display->getCursor()->getVerticalCursorIndex());
         }
 
         // Flash the screen if there was an error
         if (!result)
         {
             flash();
-            this->display->updateCursorLock(true);
+            this->display->getCursor()->updateCursorLock(true);
             this->display->setMessage(4);
         }
     }

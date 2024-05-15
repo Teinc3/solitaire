@@ -64,7 +64,7 @@ void Logic::handleUnusedCardSelection(int verticalCursorIndex)
     }
     else // lock or unlock cursor
     {
-        this->display->updateCursorLock(true);
+        this->display->getCursor()->updateCursorLock(true);
     }
 }
 
@@ -83,7 +83,7 @@ bool Logic::handleStackSelection(int toStackIndex, int fromPileIndex, int vertic
         int fromStackIndex = fromPileIndex - 1;
         if (fromStackIndex == toStackIndex) // Lock vertical cursor or Unlock
         {
-            this->display->updateCursorLock(true);
+            this->display->getCursor()->updateCursorLock(true);
             return true;
         }
 
@@ -137,7 +137,7 @@ bool Logic::handleFoundationSelection(int cursorPileIndex, int verticalCursorInd
     }
     else // Foundation
     {
-        this->display->updateCursorLock(true);
+        this->display->getCursor()->updateCursorLock(true);
         return true;
     }
 }
@@ -192,7 +192,7 @@ bool Logic::stackToStack(int cardIndex, int fromStackIndex, int toStackIndex)
         this->board->addCardToStack(toStackIndex, cardsToMove[i]);
     }
     // Unlock the cursor
-    this->display->updateCursorLock(true);
+    this->display->getCursor()->updateCursorLock(true);
     this->board->addMoves();
     return true;
 }
@@ -247,7 +247,7 @@ bool Logic::stackToFoundation(int stackIndex)
     if (hasTransferredCard)
     {
         // Unlock the cursor
-        this->display->updateCursorLock(true);
+        this->display->getCursor()->updateCursorLock(true);
         this->board->addMoves();
         return true;
     }
@@ -284,7 +284,7 @@ bool Logic::unusedToStack(int stackIndex)
     this->board->addCardToStack(stackIndex, card);
 
     // Unlock the cursor
-    this->display->updateCursorLock(true);
+    this->display->getCursor()->updateCursorLock(true);
     this->board->addMoves();
     return true;
 }
@@ -324,7 +324,7 @@ bool Logic::unusedToFoundation()
     this->board->addCardToFoundation(cardSuit, card);
 
     // Unlock the cursor
-    this->display->updateCursorLock(true);
+    this->display->getCursor()->updateCursorLock(true);
     this->board->addMoves();
     return true;
 }
@@ -368,7 +368,7 @@ bool Logic::foundationToStack(int foundationIndex, int stackIndex)
     this->board->addCardToStack(stackIndex, card);
 
     // Unlock the cursor
-    this->display->updateCursorLock(true);
+    this->display->getCursor()->updateCursorLock(true);
     this->board->addMoves();
     return true;
 }
