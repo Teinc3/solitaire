@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 
 #ifdef _WIN32
     #include <curses.h>
@@ -40,10 +41,15 @@ constexpr int STACK_COUNT = 7;
 constexpr int FOUNDATION_COUNT = 4;
 constexpr int RESERVED_CARDS = 24;
 
-constexpr int COL_COUNT_2COL = 1 + STACK_COUNT + 2;
-constexpr int COL_COUNT_1COL = 1 + STACK_COUNT + 1;
+constexpr int COL_COUNT = 1 + STACK_COUNT + 2;
+
+constexpr int HEIGHT = 22; //1+1+(3+13+1)+1+1+1
+constexpr int MIN_WIDTH = 76; //MIN_WIDTH+(2+5)
+constexpr int COL_WIDTH = 7;
 
 constexpr int HORIZ_CURSOR_XPOS[10] = { 2, 10, 17, 24, 31, 38, 45, 52, 60, 67 };
+
+constexpr int EMPTY_PILE_CURSORPIILE_YHEIGHT = HEIGHT - 5;
 
 #define GREEN 1
 #define RED 2

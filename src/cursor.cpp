@@ -1,9 +1,8 @@
 #include "cursor.hpp"
 
-Cursor::Cursor(Board* boardPtr, bool* use2ColFoundationPtr)
+Cursor::Cursor(Board* boardPtr)
 {
     this->board = boardPtr;
-    this->use2ColFoundationRef = use2ColFoundationPtr;
 
     onNewGame();
 }
@@ -15,7 +14,7 @@ void Cursor::onNewGame()
     this->isLockedCursor = false;
 
     // Reset pilecursors
-    for (int i = 0; i < COL_COUNT_2COL; i++)
+    for (int i = 0; i < COL_COUNT; i++)
     {
         this->pileCursors[i] = CursorPileInfo();
     }
@@ -46,7 +45,12 @@ void Cursor::drawCursor()
     baseX = HORIZ_CURSOR_XPOS[pileIndex];
     cursorPile = this->pileCursors[pileIndex];
 
-    if (pileIndex == 0) // Unused Pile
+    if (cursorPile.currentCursorVerticalIndex == -1 && pileIndex <= STACK_COUNT)
+    {
+        // Pile is empty, don't draw cursor
+        return;
+    }
+    else if (pileIndex == 0) // Unused Pile
     {   
         yPos = cursorPile.startingY + 1 + 2 * cursorPile.currentCursorVerticalIndex;
     }
@@ -71,9 +75,9 @@ void Cursor::drawCursor()
     }
     else // Foundations
     {
-        yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex * (cursorPile.yHeight + 1);
+        yPos = cursorPile.startingY + 1 + (cursorPile.currentCursorVerticalIndex) * (cursorPile.yHeight + 1);
     }
-    // We will want to use pileCursors to check the height of the stack and print the cursor at the appropriate position
+
     coloredPrint(this->isLockedCursor ? YELLOW : BLUE, yPos, baseX, ">");
     coloredPrint(this->isLockedCursor ? YELLOW : BLUE, yPos, baseX + 6, "<");
 }
@@ -81,9 +85,10 @@ void Cursor::drawCursor()
 
 void Cursor::clampCursorPiles()
 {   
-    for (int i = 0; i < (this->use2ColFoundationRef ? COL_COUNT_2COL : COL_COUNT_1COL); i++)
+    for (int i = 0; i < COL_COUNT; i++)
     {
         bool isFoundation = i >= 1 + STACK_COUNT;
+        int minVal = -1;
         int maxVal = 0;
         int yHeight = 3;
 
@@ -96,10 +101,23 @@ void Cursor::clampCursorPiles()
             hasHiddenCard = nextCard == nullptr; // | X | means no hidden card
 
             Card* currCard = this->board->getCurrentUnusedCard();
-            if (currCard != nullptr)
+            if (currCard != nullptr) // 2 rows (X/? + Curr Card)
             {
+                minVal = 0;
                 maxVal = 1;
                 yHeight = 5;
+            }
+            else if (nextCard != nullptr) // 1 row (?)
+            {
+                minVal = 0;
+                maxVal = 0;
+                yHeight = 3;
+            }
+            else // 0 rows, empty pile
+            {
+                minVal = -1;
+                maxVal = -1;
+                yHeight = EMPTY_PILE_CURSORPIILE_YHEIGHT;
             }
         }
         else if (!isFoundation) // Stacks
@@ -119,18 +137,15 @@ void Cursor::clampCursorPiles()
                     hasHiddenCard = true;
                 }
             }
-
             maxVal = (hasHiddenCard ? 1 : 0) + visibleCount - 1;
-            if (maxVal < 0)
-            {
-                maxVal = 0;
-            }
-            yHeight = (hasHiddenCard ? 2 : 0) + visibleCount + 2;
+            minVal = maxVal == -1 ? -1 : hasHiddenCard ? 1 : 0;
+            yHeight = maxVal == -1 ? EMPTY_PILE_CURSORPIILE_YHEIGHT : ((hasHiddenCard ? 2 : 0) + visibleCount + 2);
         }
         else
         {
             hasHiddenCard = false;
-            maxVal = this->use2ColFoundationRef ? 1 : 3;
+            minVal = 0;
+            maxVal = 1;
             yHeight = 3;
         }
         this->pileCursors[i].hasHiddenCard = hasHiddenCard;
@@ -139,9 +154,9 @@ void Cursor::clampCursorPiles()
         {
             this->pileCursors[i].currentCursorVerticalIndex = maxVal;
         }
-        else if (this->pileCursors[i].currentCursorVerticalIndex < 0)
+        else if (this->pileCursors[i].currentCursorVerticalIndex < minVal)
         {
-            this->pileCursors[i].currentCursorVerticalIndex = 0;
+            this->pileCursors[i].currentCursorVerticalIndex = minVal;
         }
         this->pileCursors[i].yHeight = yHeight;
     }
@@ -149,14 +164,13 @@ void Cursor::clampCursorPiles()
 
 void Cursor::updateHorizCursorX(bool isRight)
 {
-    int max_xIndex = this->use2ColFoundationRef ? 9 : 8;
     if (isRight)
     {
-        this->horizCursorXIndex = this->horizCursorXIndex == max_xIndex ? 0 : this->horizCursorXIndex + 1;
+        this->horizCursorXIndex = this->horizCursorXIndex == COL_COUNT - 1 ? 0 : this->horizCursorXIndex + 1;
     }
     else
     {
-        this->horizCursorXIndex = this->horizCursorXIndex == 0 ? max_xIndex : this->horizCursorXIndex - 1;
+        this->horizCursorXIndex = this->horizCursorXIndex == 0 ? COL_COUNT - 1 : this->horizCursorXIndex - 1;
     }
     if (!this->isLockedCursor)
     {
@@ -164,17 +178,15 @@ void Cursor::updateHorizCursorX(bool isRight)
     }
 }
 
-
 void Cursor::updateVerticalCursorIndex(bool isUp)
 {
-    if (!this->isLockedCursor)
+    if (!this->isLockedCursor) // Cursor free
     {
-        this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += isUp ? -1 : 1;
+        this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += (isUp ? -1 : 1);
     }
-    else if (this->horizCursorXIndex > STACK_COUNT)
+    else if (this->horizCursorXIndex > STACK_COUNT) // Foundation when cursor is not free
     {
-        // If we are on a foundation we need to let the user move the cursor up and down
-        this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += isUp ? -1 : 1;
+        this->pileCursors[this->horizCursorXIndex].currentCursorVerticalIndex += (isUp ? -1 : 1);
     }
 }
 

@@ -27,18 +27,9 @@ Display::Display(Game* game)
         std::cout << std::endl << "Please increase the size of your terminal to at least " << MIN_WIDTH << "x" << HEIGHT << "." << std::endl;
         return;
     }
-    else if (max_x < MIN_2COL_FOUNDATION_WIDTH)
-    {
-        this->use2ColFoundation = false;
-    }
-    else
-    {
-        this->use2ColFoundation = true;
-    }
 
-    this->width = this->use2ColFoundation ? MIN_2COL_FOUNDATION_WIDTH : MIN_WIDTH;
     this->game = game;
-    this->cursor = new Cursor(this->game->getBoard(), &this->use2ColFoundation);
+    this->cursor = new Cursor(this->game->getBoard());
     
     onNewGame();
 }
@@ -86,11 +77,6 @@ void Display::render()
     refresh();
 }
 
-int Display::is2ColFoundation()
-{
-    return this->use2ColFoundation;
-}
-
 Cursor* Display::getCursor()
 {
     return this->cursor;
@@ -121,9 +107,9 @@ void Display::drawBoundary()
 
     for (int i = 0; i < HEIGHT - 1; i++)
     {
-        for (int j = 0; j < this->width; j++)
+        for (int j = 0; j < MIN_WIDTH; j++)
         {
-            if (i == 0 || i == HEIGHT - 2 || j == 0 || j == this->width - 1)
+            if (i == 0 || i == HEIGHT - 2 || j == 0 || j == MIN_WIDTH - 1)
             {
                 coloredPrint(GREEN, i, j, "#");  // Print # at the boundary
             }
@@ -133,11 +119,11 @@ void Display::drawBoundary()
 
 void Display::drawMenu(bool isGameMenu) {
     int start_y = (HEIGHT - 10) / 2;  // Calculate the starting y position
-    int start_x = (this->width - 27) / 2;  // Calculate the starting x position
+    int start_x = (MIN_WIDTH - 27) / 2;  // Calculate the starting x position
 
     MenuOption menuOption = this->game->getMenuOption();
     bool menuOptions[4] = { menuOption == MenuOption::NEW_GAME, menuOption == MenuOption::LOAD_SAVE_GAME, menuOption == MenuOption::INFO, menuOption == MenuOption::QUIT };
-    string arg1[3] = { menuOptions[0] ? ">" : " ", isGameMenu ? "Continue" : "New Game", menuOptions[0] ? "<" : " " };
+    string arg1[3] = { menuOptions[0] ? ">" : " ", isGameMenu && !this->game->getHasAlreadyWon() ? "Continue" : "New Game", menuOptions[0] ? "<" : " " };
     string arg2[3] = { menuOptions[1] ? ">" : " ", isGameMenu ? "Save" : "Load", menuOptions[1] ? "<" : " " };
     string arg3[2] = { menuOptions[2] ? ">" : " ", menuOptions[2] ? "<" : " " };
     string arg4[3] = { menuOptions[3] ? ">" : " ", isGameMenu ? "Stop" : "Quit", menuOptions[3] ? "<" : " " };
@@ -250,8 +236,8 @@ void Display::drawStack(int stackIndex)
 void Display::drawFoundation(Suit suitIndex)
 {
     int foundationLength = this->game->getBoard()->getFoundationLength(suitIndex);
-    int start_x = HORIZ_CURSOR_XPOS[8] + 1 + COL_WIDTH * (this->use2ColFoundation ? suitIndex % 2 : 0);
-    int start_y = 2 + 4 * (this->use2ColFoundation ? suitIndex / 2 : suitIndex);
+    int start_x = HORIZ_CURSOR_XPOS[8] + 1 + COL_WIDTH * (suitIndex % 2);
+    int start_y = 2 + 4 * (suitIndex / 2);
 
     if (foundationLength == 0)
     {   

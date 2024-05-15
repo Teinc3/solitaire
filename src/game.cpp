@@ -17,6 +17,7 @@ Game::Game()
     this->logic = new Logic(this->board, this->display);
 
     this->isGamePreviouslyCreated = false;
+    this->hasAlreadyWon = false;
 }
 
 Game::~Game()
@@ -89,7 +90,6 @@ void Game::deleteCards()
             this->deck[i] = nullptr;
         }
     }
-    //std::cout << "Deleted all card objects" << std::endl;
 }
 
 void Game::shuffleCards()
@@ -198,6 +198,11 @@ bool Game::getIsRunning()
     return this->isRunning;
 }
 
+bool Game::getHasAlreadyWon()
+{
+    return this->hasAlreadyWon;
+}
+
 GameState Game::getGameState()
 {
     return this->gameState;
@@ -277,7 +282,7 @@ void Game::handleEnterKey()
         switch (this->menuOption)
         {
         case MenuOption::NEW_GAME:
-            if (this->gameState == GameState::MAIN_MENU)
+            if (this->gameState == GameState::MAIN_MENU || this->hasAlreadyWon)
             {
                 createGame();
             }
@@ -304,21 +309,27 @@ void Game::handleEnterKey()
     {
         // Usually confirming an action.
         int horizCursorXIndex = this->display->getCursor()->getHorizCursorXIndex();
+        int verticalCursorIndex = this->display->getCursor()->getVerticalCursorIndex();
         bool result;
-        if (horizCursorXIndex == 0) // Unused pile
+
+        if (verticalCursorIndex == -1) // Empty pile should not have any inputs
         {
-            this->logic->handleUnusedCardSelection(this->display->getCursor()->getVerticalCursorIndex());
+            result = false;
+        }
+        else if (horizCursorXIndex == 0) // Unused pile
+        {
+            this->logic->handleUnusedCardSelection(verticalCursorIndex);
             result = true; // Unless sth weird happens, such as cursor is on an emptied unused pile, shouldnt have errors
         }
         else if (horizCursorXIndex >= 1 && horizCursorXIndex <= STACK_COUNT)
         {
             // Stack
-            result = this->logic->handleStackSelection(horizCursorXIndex - 1, this->display->getCursor()->getLockedCursorPileIndex(), this->display->getCursor()->getVerticalCursorIndex());
+            result = this->logic->handleStackSelection(horizCursorXIndex - 1, this->display->getCursor()->getLockedCursorPileIndex(), verticalCursorIndex);
         }
         else
         {
             // Foundation
-            result = this->logic->handleFoundationSelection(this->display->getCursor()->getLockedCursorPileIndex(), this->display->getCursor()->getVerticalCursorIndex());
+            result = this->logic->handleFoundationSelection(this->display->getCursor()->getLockedCursorPileIndex(), verticalCursorIndex);
         }
 
         // Flash the screen if there was an error

@@ -31,6 +31,7 @@ public:
     void handleInput();
 
     bool getIsRunning();
+    bool getHasAlreadyWon();
     GameState getGameState();
     MenuOption getMenuOption();
 

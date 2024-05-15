@@ -5,11 +5,6 @@
 #include "game.hpp"
 #include "cursor.hpp"
 
-constexpr int MIN_WIDTH = 69; //1+1+5+2+1+(2+5)*7+2+1+2+5+1+1
-constexpr int HEIGHT = 22; //1+1+(3+13+1)+1+1+1
-constexpr int MIN_2COL_FOUNDATION_WIDTH = 76; //MIN_WIDTH+(2+5)
-constexpr int COL_WIDTH = 7;
-
 constexpr int MSG_STARTING_X = 2;
 constexpr int MOVE_MSG_STARTING_X = 62;
 constexpr int MAX_MSG_LENGTH = 56;
@@ -31,17 +26,12 @@ public:
 
     void render();
 
-    int is2ColFoundation();
-
     Cursor* getCursor();
 
     void setMessage(int);
     bool resetMessage(bool);
 
 private:
-    int width;
-    bool use2ColFoundation;
-
     int currentMessageIndex;
 
     Cursor* cursor = nullptr;

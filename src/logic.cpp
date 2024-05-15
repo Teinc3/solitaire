@@ -112,7 +112,7 @@ bool Logic::handleStackSelection(int toStackIndex, int fromPileIndex, int vertic
     else // We transferring from foundation
     {
         int foundationPileIndex = fromPileIndex - 1 - STACK_COUNT;
-        int foundationIndex = foundationPileIndex + (this->display->is2ColFoundation() ? 2 : 1) * verticalCursorIndex;
+        int foundationIndex = foundationPileIndex + 2 * verticalCursorIndex;
         
         return foundationToStack(foundationIndex, toStackIndex);
     }
