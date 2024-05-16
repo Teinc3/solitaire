@@ -5,6 +5,7 @@
 
 #include "common.hpp"
 #include "card.hpp"
+#include "persistence.hpp"
 
 // Forward declarations
 
@@ -53,6 +54,7 @@ private:
     Board* board = nullptr;
     Logic* logic = nullptr;
     Display* display = nullptr;
+    Persistence* persistence = nullptr;
 
     void handleArrowKeys(ArrowKey);
     void handleEnterKey();

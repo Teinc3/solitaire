@@ -15,6 +15,7 @@ Game::Game()
     this->board = new Board();
     this->display = new Display(this);
     this->logic = new Logic(this->board, this->display);
+    this->persistence = new Persistence(this->board);
 
     this->isGamePreviouslyCreated = false;
     this->hasAlreadyWon = false;
@@ -65,6 +66,9 @@ void Game::cleanUp(bool hardCleanUp) // If hardCleanUp is true, delete all objec
 
         delete this->logic;
         this->logic = nullptr;
+
+        delete this->persistence;
+        this->persistence = nullptr;
     }
     else
     {
