@@ -12,16 +12,18 @@ Persistence::~Persistence()
 
 bool Persistence::saveFile()
 {
-    char* saveData = generateSaveData();
+    char* saveData = writeSaveData();
     std::ofstream saveFile(SAVEFILE_NAME);
     if (saveFile.is_open())
     {
         saveFile << saveData;
         saveFile.close();
+        delete[] saveData;
         return true;
     }
     else // Error saving the file, Maybe print error message at display
     {
+        delete[] saveData;
         return false;
     }
 }
@@ -29,58 +31,61 @@ bool Persistence::saveFile()
 bool Persistence::loadFile()
 {
     // Load the game
+    return false;
 }
 
 /* Save the game in the format
-Line 1-7: Stack Piles
-Line 8: Foundation Piles
-Line 9: Unused Pile
-Line 10: Move Count
+Stack Piles SEP Foundation Piles SEP UnusedCount[1] Unused Pile SEP Move Count[2]
 
 For each pile, the format is a char (8 bits)
 Signed bit: Positive for face up, Negative for face down
 Value bits: 0-51 (13 * suitIndex + (value - 1))
+Range: [0-51] U [128-179]
 
-Maximum size: 52 Cards * 1 byte + 9 new lines * 1 byte (\n) + 2 bytes for move count + 1 byte for null terminator = 64 bytes
+SEP: 255/-1
+
+Maximum size: 52 Cards * 1 byte char + 9 new lines * 1 byte (char sep, -128) + 1 byte unusedCardIndex + 2 bytes for move count = 63 bytes
 Note that if foundation piles are filled (like up to 5H) then we can omit 4 cards (AH-4H)
 */
-char* Persistence::generateSaveData()
+char* Persistence::writeSaveData()
 {
     // Make a new char array to store the save data
     int saveDataLength = getArrayLength();
-    char saveData[saveDataLength]; // Read bottom comment for the size calculation
+    char* saveData = new char[saveDataLength]; // Read bottom comment for the size calculation
     int saveDataIndex = 0;
 
     for (int i = 0; i < STACK_COUNT; i++)
     {
         // Save the stack data
-        generateStackData(i, saveData, &saveDataIndex);
-        generateNewLine(saveData, &saveDataIndex);
+        writeStackData(i, saveData, &saveDataIndex);
+        writeSep(saveData, &saveDataIndex);
     }
+
+    // For some reason, the output file only writes up to stack piles...
 
     for (int i = 0; i < FOUNDATION_COUNT; i++)
     {
         // Save the foundation data
-        generateFoundationData(i, saveData, &saveDataIndex);
-        generateNewLine(saveData, &saveDataIndex);
+        writeFoundationData(i, saveData, &saveDataIndex);
+        writeSep(saveData, &saveDataIndex);
     }
 
+    // Save remaining unused cards count
+    saveData[saveDataIndex++] = this->board->getRemainingUnusedCardCount() & 0xFF;
+
     // Save the unused pile data
-    generateUnusedData(saveData, &saveDataIndex);
-    generateNewLine(saveData, &saveDataIndex);
+    writeUnusedData(saveData, &saveDataIndex);
+    writeSep(saveData, &saveDataIndex);
 
     // Clamp moves to 2 bytes
     int moveCount = this->board->getMoves();
     saveData[saveDataIndex++] = (moveCount >> 8) & 0xFF;
     saveData[saveDataIndex++] = moveCount & 0xFF;
 
-    // Save null terminator
-    saveData[saveDataIndex] = '\0';
-
     return saveData;
 }
 
-void Persistence::generateStackData(int stackIndex, char* saveData, int* saveDataIndex)
+void Persistence::writeStackData(int stackIndex, char* saveData, int* saveDataIndex)
 {
     int stackLength = this->board->getStackLength(stackIndex);
     for (int i = 0; i < stackLength; i++)
@@ -90,7 +95,7 @@ void Persistence::generateStackData(int stackIndex, char* saveData, int* saveDat
     }
 }
 
-void Persistence::generateFoundationData(int suitIndex, char* saveData, int* saveDataIndex)
+void Persistence::writeFoundationData(int suitIndex, char* saveData, int* saveDataIndex)
 {
     // Basically just find the topmost visible card in the foundation and save it
     int foundationLength = this->board->getFoundationLength(suitIndex);
@@ -102,7 +107,7 @@ void Persistence::generateFoundationData(int suitIndex, char* saveData, int* sav
     // No need to save empty foundation piles since we already encode the suit in the foundation data
 }
 
-void Persistence::generateUnusedData(char* saveData, int* saveDataIndex)
+void Persistence::writeUnusedData(char* saveData, int* saveDataIndex)
 {
     Card* currCard = this->board->getCurrentUnusedCard();
     Card* savedCard = currCard;
@@ -113,9 +118,9 @@ void Persistence::generateUnusedData(char* saveData, int* saveDataIndex)
     while (currCard != savedCard);
 }
 
-void Persistence::generateNewLine(char* saveData, int* saveDataIndex)
+void Persistence::writeSep(char* saveData, int* saveDataIndex)
 {
-    saveData[*saveDataIndex] = '\n';
+    saveData[*saveDataIndex] = -1;
     *saveDataIndex += 1;
 }
 
@@ -126,14 +131,14 @@ void Persistence::writeCardData(Card* card, char* saveData, int* saveDataIndex)
     {
         return;
     }
-    char cardData = card->getSuit() * 13 + card->getValue() - 1;
+    int cardData = static_cast<int>(card->getSuit()) * MAX_VALUE + card->getValue() - 1;
     if (card->getIsFaceUp())
     {
         saveData[*saveDataIndex] = cardData;
     }
     else
     {
-        saveData[*saveDataIndex] = -cardData;
+        saveData[*saveDataIndex] = cardData + 128; // Set the sign bit to 1
     }
     *saveDataIndex += 1;
 }
@@ -149,5 +154,5 @@ int Persistence::getArrayLength()
             omittedCount += foundationLength - 1;
         }
     }
-    return MAX_CARDS - omittedCount + LINE_BREAK_COUNT + 2 + 1; // Moves + null terminator
+    return MAX_CARDS - omittedCount + LINE_BREAK_COUNT + 1 + 2;
 }

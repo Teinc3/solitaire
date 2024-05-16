@@ -13,6 +13,8 @@ constexpr const char* MESSAGES[] = {
     "Congratulations! You won!", // Yellow
     " (Backspace to Dismiss)",
     "Auto Finish (Enter to Confirm)", // Yellow
+    "Unable to Save Game", // Red
+    "Unable to Load Game", // Red
     "Invalid move", // Red
     // Add more invalid moves here, so index will not fuck up
 };

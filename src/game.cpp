@@ -283,6 +283,8 @@ void Game::handleEnterKey()
     }
     if (this->gameState != GameState::PLAYING)
     {
+        int result = 0;
+
         switch (this->menuOption)
         {
         case MenuOption::NEW_GAME:
@@ -293,6 +295,30 @@ void Game::handleEnterKey()
             else // Continue
             {
                 this->gameState = GameState::PLAYING;
+            }
+            break;
+        case MenuOption::LOAD_SAVE_GAME:
+
+            if (this->gameState == GameState::GAME_MENU)
+            {
+                // Save game
+                if (!this->persistence->saveFile())
+                {
+                    result = 1;
+                }
+            }
+            else
+            {
+                // Load game
+                if (!this->persistence->loadFile())
+                {
+                    result = 2;
+                }
+            }
+            if (result >= 1)
+            {
+                flash();
+                this->display->setMessage(3 + result);
             }
             break;
         case MenuOption::QUIT:
@@ -341,7 +367,7 @@ void Game::handleEnterKey()
         {
             flash();
             this->display->getCursor()->updateCursorLock(true);
-            this->display->setMessage(4);
+            this->display->setMessage(6);
         }
     }
 }

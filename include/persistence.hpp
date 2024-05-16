@@ -19,12 +19,12 @@ public:
 private:
     Board* board = nullptr;
 
-    char* generateSaveData();
+    char* writeSaveData();
 
-    void generateStackData(int, char*, int*);
-    void generateFoundationData(int, char*, int*);
-    void generateUnusedData(char*, int*);
-    void generateNewLine(char*, int*);
+    void writeStackData(int, char*, int*);
+    void writeFoundationData(int, char*, int*);
+    void writeUnusedData(char*, int*);
+    void writeSep(char*, int*);
     void writeCardData(Card*, char*, int*);
 
     int getArrayLength();
