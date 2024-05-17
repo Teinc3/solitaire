@@ -3,14 +3,14 @@
 #include "common.hpp"
 #include "board.hpp"
 
-#define LINE_BREAK_COUNT 9
+#define SEP_COUNT 9
 
 constexpr char SAVEFILE_NAME[] = "save.sol";
 
 class Persistence
 {
 public:
-    Persistence(Board* board);
+    Persistence(Board* board, Card** deck);
     ~Persistence();
 
     bool saveFile();
@@ -18,8 +18,12 @@ public:
 
 private:
     Board* board = nullptr;
+    Card** deck = nullptr;
 
-    char* writeSaveData();
+    int getArrayLength();
+
+    char* writeSaveData(int);
+    bool readSaveData(char*, int);
 
     void writeStackData(int, char*, int*);
     void writeFoundationData(int, char*, int*);
@@ -27,5 +31,10 @@ private:
     void writeSep(char*, int*);
     void writeCardData(Card*, char*, int*);
 
-    int getArrayLength();
+    bool readStackData(char*, int, int, int);
+    bool readFoundationData(char*, int, int);
+    bool readUnusedData(char*, int, int);
+    bool readMovesData(char*, int);
+    Card* readCardData(char);
+
 };

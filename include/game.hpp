@@ -19,12 +19,7 @@ public:
     Game();
     ~Game();
 
-    void createGame();
-    void cleanUp(bool);
-
-    void createCards();
-    void deleteCards();
-    void shuffleCards();
+    void createGame(bool);
     void finishGame();
 
     void update();
@@ -55,6 +50,12 @@ private:
     Logic* logic = nullptr;
     Display* display = nullptr;
     Persistence* persistence = nullptr;
+
+    void cleanUp(bool);
+
+    void createCards();
+    void deleteCards();
+    void shuffleCards();
 
     void handleArrowKeys(ArrowKey);
     void handleEnterKey();

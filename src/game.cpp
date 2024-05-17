@@ -15,7 +15,7 @@ Game::Game()
     this->board = new Board();
     this->display = new Display(this);
     this->logic = new Logic(this->board, this->display);
-    this->persistence = new Persistence(this->board);
+    this->persistence = new Persistence(this->board, this->deck);
 
     this->isGamePreviouslyCreated = false;
     this->hasAlreadyWon = false;
@@ -26,7 +26,7 @@ Game::~Game()
     cleanUp(true);
 }
 
-void Game::createGame()
+void Game::createGame(bool fromLoad)
 {   
     // Reset the game
     if (this->isGamePreviouslyCreated)
@@ -46,64 +46,11 @@ void Game::createGame()
     this->board->onNewGame();
 
     createCards();
-    shuffleCards();
 
-    board->distributeCards(this->deck);
-}
-
-void Game::cleanUp(bool hardCleanUp) // If hardCleanUp is true, delete all objects
-{
-    // Clean up the game
-    deleteCards();
-
-    if (hardCleanUp)
+    if (!fromLoad)
     {
-        delete this->display;
-        this->display = nullptr;
-
-        delete this->display;
-        this->display = nullptr;
-
-        delete this->logic;
-        this->logic = nullptr;
-
-        delete this->persistence;
-        this->persistence = nullptr;
-    }
-    else
-    {
-        this->board->cleanup();
-    }
-}
-
-void Game::createCards()
-{
-    // Create 52 cards
-    for (int i = 0; i < 52; ++i) {
-        this->deck[i] = new Card(static_cast<Suit>(i / 13), i % 13 + 1);
-    }
-}
-
-void Game::deleteCards()
-{
-    // Delete all card objects
-    for (int i = 0; i < 52; ++i) {
-        if (this->deck[i] != nullptr)
-        {
-            delete this->deck[i];
-            this->deck[i] = nullptr;
-        }
-    }
-}
-
-void Game::shuffleCards()
-{
-    // Shuffle the deck using the Fisher-Yates algorithm
-    for (int i = 51; i > 0; --i) {
-        int j = rand() % (i + 1);
-        Card* temp = this->deck[i];
-        this->deck[i] = this->deck[j];
-        this->deck[j] = temp;
+        shuffleCards();
+        board->distributeCards(this->deck);
     }
 }
 
@@ -232,6 +179,63 @@ void Game::setIsRunning(bool isRunning)
     this->isRunning = isRunning;
 }
 
+void Game::cleanUp(bool hardCleanUp) // If hardCleanUp is true, delete all objects
+{
+    // Clean up the game
+    deleteCards();
+
+    if (hardCleanUp)
+    {
+        delete this->display;
+        this->display = nullptr;
+
+        delete this->display;
+        this->display = nullptr;
+
+        delete this->logic;
+        this->logic = nullptr;
+
+        delete this->persistence;
+        this->persistence = nullptr;
+    }
+    else
+    {
+        this->board->cleanup();
+    }
+}
+
+void Game::createCards()
+{
+    // Create 52 cards
+    for (int i = 0; i < 52; ++i) {
+        this->deck[i] = new Card(static_cast<Suit>(i / 13), i % 13 + 1);
+    }
+}
+
+void Game::deleteCards()
+{
+    // Delete all card objects
+    for (int i = 0; i < 52; ++i) {
+        if (this->deck[i] != nullptr)
+        {
+            delete this->deck[i];
+            this->deck[i] = nullptr;
+        }
+    }
+}
+
+void Game::shuffleCards()
+{
+    // Shuffle the deck using the Fisher-Yates algorithm
+    for (int i = 51; i > 0; --i) {
+        int j = rand() % (i + 1);
+        Card* temp = this->deck[i];
+        this->deck[i] = this->deck[j];
+        this->deck[j] = temp;
+    }
+}
+
+
 void Game::handleArrowKeys(ArrowKey arrowKey)
 {
     // Handle arrow key presses here
@@ -290,37 +294,38 @@ void Game::handleEnterKey()
         case MenuOption::NEW_GAME:
             if (this->gameState == GameState::MAIN_MENU || this->hasAlreadyWon)
             {
-                createGame();
+                createGame(false);
             }
             else // Continue
             {
                 this->gameState = GameState::PLAYING;
             }
             break;
-        case MenuOption::LOAD_SAVE_GAME:
 
+        case MenuOption::LOAD_SAVE_GAME:
             if (this->gameState == GameState::GAME_MENU)
             {
                 // Save game
-                if (!this->persistence->saveFile())
-                {
-                    result = 1;
-                }
+                result = this->persistence->saveFile() ? 3 : 1;
             }
-            else
+            else // Load game
             {
-                // Load game
-                if (!this->persistence->loadFile())
+                createGame(true);
+                result = this->persistence->loadFile() ? 4 : 2;
+                
+                if (result == 2) // Load failed
                 {
-                    result = 2;
+                    this->gameState = GameState::MAIN_MENU;
                 }
             }
+
             if (result >= 1)
             {
                 flash();
-                this->display->setMessage(3 + result);
+                this->display->setMessage(LOAD_SAVE_MSG_INDEX + result - 1);
             }
             break;
+
         case MenuOption::QUIT:
             if (this->gameState == GameState::MAIN_MENU) // Quit Game
             {
@@ -331,6 +336,7 @@ void Game::handleEnterKey()
                 this->gameState = GameState::MAIN_MENU;
             }
             break;
+
         default:
             break;
         }
@@ -367,7 +373,7 @@ void Game::handleEnterKey()
         {
             flash();
             this->display->getCursor()->updateCursorLock(true);
-            this->display->setMessage(6);
+            this->display->setMessage(ERROR_MSG_INDEX);
         }
     }
 }

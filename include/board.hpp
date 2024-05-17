@@ -34,6 +34,8 @@ public:
 
     int getMoves();
     void addMoves();
+
+    bool loadUnusedCards(Card**, int, int);
     
 private:
     int moves;

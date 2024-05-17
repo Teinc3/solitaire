@@ -1,39 +1,5 @@
 #include "persistence.hpp"
 
-Persistence::Persistence(Board* board)
-{
-    this->board = board;
-}
-
-Persistence::~Persistence()
-{
-    this->board = nullptr;
-}
-
-bool Persistence::saveFile()
-{
-    char* saveData = writeSaveData();
-    std::ofstream saveFile(SAVEFILE_NAME);
-    if (saveFile.is_open())
-    {
-        saveFile << saveData;
-        saveFile.close();
-        delete[] saveData;
-        return true;
-    }
-    else // Error saving the file, Maybe print error message at display
-    {
-        delete[] saveData;
-        return false;
-    }
-}
-
-bool Persistence::loadFile()
-{
-    // Load the game
-    return false;
-}
-
 /* Save the game in the format
 Stack Piles SEP Foundation Piles SEP UnusedCount[1] Unused Pile SEP Move Count[2]
 
@@ -44,13 +10,89 @@ Range: [0-51] U [128-179]
 
 SEP: 255/-1
 
-Maximum size: 52 Cards * 1 byte char + 9 new lines * 1 byte (char sep, -128) + 1 byte unusedCardIndex + 2 bytes for move count = 63 bytes
+Minimum size: 4 Cards * 1 byte char + 9 new lines * 1 byte (char sep, -128) + 1 byte unusedCardIndex + 2 bytes for move count = 16 bytes
+Maximum size: 52 Cards * 1 byte char + 9 new lines * 1 byte (char sep, -128) + 1 byte unusedCardIndex + 2 bytes for move count = 64 bytes
 Note that if foundation piles are filled (like up to 5H) then we can omit 4 cards (AH-4H)
 */
-char* Persistence::writeSaveData()
+
+Persistence::Persistence(Board* board, Card** deck)
+{
+    this->board = board;
+    this->deck = deck;
+}
+
+Persistence::~Persistence()
+{
+    this->board = nullptr;
+    this->deck = nullptr;
+}
+
+bool Persistence::saveFile()
+{
+    std::ofstream saveFile(SAVEFILE_NAME, std::ios::binary);
+    if (saveFile.is_open())
+    {
+        int saveDataLength = getArrayLength();
+        char* saveData = writeSaveData(saveDataLength);
+
+        saveFile.write(saveData, saveDataLength);
+        saveFile.close();
+        delete[] saveData;
+
+        return true;
+    }
+    else // Error saving the file, Maybe print error message at display
+    {
+        return false;
+    }
+}
+
+bool Persistence::loadFile()
+{
+    // Load the game
+    std::ifstream saveFile(SAVEFILE_NAME, std::ios::binary);
+    if (saveFile.is_open())
+    {
+        // Read the save data
+        saveFile.seekg(0, saveFile.end);
+        int saveDataLength = saveFile.tellg();
+        saveFile.seekg(0, saveFile.beg);
+
+        // Size must >= 16 bytes and <= 64 bytes
+        if (saveDataLength < 16 || saveDataLength > 64)
+        {
+            return false;
+        }
+
+        char saveData[saveDataLength]; // Read bottom comment for the size calculation
+        saveFile.read(saveData, saveDataLength);
+        saveFile.close();
+
+        return readSaveData(saveData, saveDataLength);
+    }
+    else // Error loading the file, Maybe print error message at display
+    {
+        return false;
+    }
+}
+
+int Persistence::getArrayLength()
+{
+    int omittedCount = 0;
+    for (int i = 0; i < FOUNDATION_COUNT; i++)
+    {
+        int foundationLength = this->board->getFoundationLength(i);
+        if (foundationLength > 0)
+        {
+            omittedCount += foundationLength - 1;
+        }
+    }
+    return MAX_CARDS - omittedCount + SEP_COUNT + 1 + 2;
+}
+
+char* Persistence::writeSaveData(int saveDataLength)
 {
     // Make a new char array to store the save data
-    int saveDataLength = getArrayLength();
     char* saveData = new char[saveDataLength]; // Read bottom comment for the size calculation
     int saveDataIndex = 0;
 
@@ -67,8 +109,8 @@ char* Persistence::writeSaveData()
     {
         // Save the foundation data
         writeFoundationData(i, saveData, &saveDataIndex);
-        writeSep(saveData, &saveDataIndex);
     }
+    writeSep(saveData, &saveDataIndex);
 
     // Save remaining unused cards count
     saveData[saveDataIndex++] = this->board->getRemainingUnusedCardCount() & 0xFF;
@@ -83,6 +125,32 @@ char* Persistence::writeSaveData()
     saveData[saveDataIndex++] = moveCount & 0xFF;
 
     return saveData;
+}
+
+bool Persistence::readSaveData(char* saveData, int saveDataLength)
+{
+    // Split the save data into separate piles at "SEP" (We should have 9 "SEP"s, reject if not)
+    int sepCount = 0;
+    int saveDataStartIndex = 0;
+    int saveDataEndIndex = 0;
+    for (; saveDataEndIndex < saveDataLength; saveDataEndIndex++)
+    {
+        if (saveData[saveDataEndIndex] == -1)
+        {
+            // Feed the sliced save data into helper read functions
+            if (!((sepCount <= 6 && readStackData(saveData, saveDataStartIndex, saveDataEndIndex, sepCount)) || // Stacks
+                (sepCount == 7 && readFoundationData(saveData, saveDataStartIndex, saveDataEndIndex)) || // Foundations
+                (sepCount == 8 && readUnusedData(saveData, saveDataStartIndex, saveDataEndIndex)))) // Unused Pile 
+            { 
+                // Should never reach here
+                return false;
+            }
+            
+            saveDataStartIndex = saveDataEndIndex + 1;
+            sepCount++;
+        }
+    }
+    return (sepCount == SEP_COUNT && readMovesData(saveData, saveDataStartIndex)); // Moves
 }
 
 void Persistence::writeStackData(int stackIndex, char* saveData, int* saveDataIndex)
@@ -143,16 +211,109 @@ void Persistence::writeCardData(Card* card, char* saveData, int* saveDataIndex)
     *saveDataIndex += 1;
 }
 
-int Persistence::getArrayLength()
+bool Persistence::readStackData(char* saveData, int saveDataStartIndex, int saveDataEndIndex, int stackIndex)
 {
-    int omittedCount = 0;
-    for (int i = 0; i < FOUNDATION_COUNT; i++)
+    int stackLength = saveDataEndIndex - saveDataStartIndex; // endIndex is exclusive
+    for (int i = 0; i < stackLength; i++)
     {
-        int foundationLength = this->board->getFoundationLength(i);
-        if (foundationLength > 0)
+        Card* card = readCardData(saveData[saveDataStartIndex + i]);
+        bool isFaceUp = card->getIsFaceUp();
+        if (card == nullptr)
         {
-            omittedCount += foundationLength - 1;
+            return false;
         }
+        this->board->addCardToStack(stackIndex, card);
+        card->setIsFaceUp(isFaceUp); // Since board addCardToStack sets it to true
     }
-    return MAX_CARDS - omittedCount + LINE_BREAK_COUNT + 1 + 2;
+    return true;
+}
+
+bool Persistence::readFoundationData(char* saveData, int saveDataStartIndex, int saveDataEndIndex)
+{
+    int foundationCount = saveDataEndIndex - saveDataStartIndex; // endIndex is exclusive
+    for (int i = 0; i < foundationCount; i++)
+    {
+        Card* card = readCardData(saveData[saveDataStartIndex + i]);
+        if (card == nullptr)
+        {
+            return false;
+        }
+        // Add all cards below the topmost card to the foundation
+        int currDecrement = 1;
+        do 
+        {
+            this->board->addCardToFoundation(card->getSuit(), card);
+            card = readCardData(saveData[saveDataStartIndex + i] - currDecrement);
+            currDecrement++;
+        }
+        while (card != nullptr);
+    }
+    return true;
+}
+
+bool Persistence::readUnusedData(char* saveData, int saveDataStartIndex, int saveDataEndIndex)
+{
+    int currUnusedIndex = saveData[saveDataStartIndex]; // 1byte
+    saveDataStartIndex += 1;
+    int unusedCardCount = saveDataEndIndex - saveDataStartIndex; // endIndex is exclusive
+
+    // First we write all unused cards to a temporary array
+    Card* unusedCards[unusedCardCount];
+    int unusedIndex = currUnusedIndex;
+    int i = 0;
+    do
+    {   
+        int dataIndex = saveDataStartIndex + unusedIndex;
+        if (dataIndex >= saveDataEndIndex)
+        {
+            dataIndex -= unusedCardCount;
+        }
+
+        Card* card = readCardData(saveData[dataIndex]);
+        if (card == nullptr)
+        {
+            return false;
+        }
+        unusedCards[i] = card;
+        unusedIndex = (unusedIndex + 1) % unusedCardCount;
+        i++;
+    } 
+    while (unusedIndex != currUnusedIndex && i < unusedCardCount);
+
+    // Then we add the cards to the unused Pile
+    return this->board->loadUnusedCards(unusedCards, unusedCardCount, currUnusedIndex);
+}
+
+bool Persistence::readMovesData(char* saveData, int saveDataStartIndex)
+{
+    int moveCount = (saveData[saveDataStartIndex] << 8) | saveData[saveDataStartIndex + 1];
+    while (this->board->getMoves() < moveCount)
+    {
+        this->board->addMoves();
+    }
+    return true;
+}
+
+Card* Persistence::readCardData(char cardData)
+{
+    bool isFaceUp = cardData >= 0;
+    if (!isFaceUp)
+    {
+        cardData -= 128;
+    }
+
+    // Value checks
+    if (cardData < 0 || cardData >= MAX_CARDS)
+    {
+        return nullptr;
+    }
+
+    // Find this card in the deck
+    Card* card = this->deck[static_cast<int>(cardData)];
+    if (card == nullptr)
+    {
+        return nullptr;
+    }
+    card->setIsFaceUp(isFaceUp);
+    return card;
 }

@@ -218,3 +218,21 @@ void Board::addMoves()
 {
     this->moves++;
 }
+
+bool Board::loadUnusedCards(Card** cardOrder, int cardOrderLength, int currUnusedIndex)
+{
+    // Check if cardOrderLength is greater than the size of the unusedCards vector
+    if (cardOrderLength > this->unusedCards->size())
+    {
+        return false;
+    }
+
+    // Load unused cards
+    for (int i = 0; i < cardOrderLength; i++)
+    {
+        this->unusedCards->push_back(cardOrder[i]);
+    }
+    // Set the current unused card index
+    this->unusedCardIndex = currUnusedIndex;
+    return true;
+}

@@ -74,6 +74,8 @@ void Display::render()
         break;
     }
 
+    drawMessage(this->game->getGameState() == GameState::PLAYING);
+
     refresh();
 }
 
@@ -158,7 +160,6 @@ void Display::drawGameBoard()
     }
 
     this->cursor->drawCursor();
-    drawMessage();
 }
 
 void Display::drawDelimiter(int x)
@@ -256,27 +257,38 @@ void Display::drawFoundation(Suit suitIndex)
     }
 }
 
-void Display::drawMessage()
+void Display::drawMessage(bool drawMoves)
 {
     int y = HEIGHT - 1;
-    // Draw moves at x = 62
-    int moves = this->game->getBoard()->getMoves();
-    string message = "Moves: " + std::to_string(moves);
-
-    coloredPrint(BLACK, y, MOVE_MSG_STARTING_X, message);
+    
+    if (drawMoves)
+    {    
+        // Draw moves at x = 62
+        int moves = this->game->getBoard()->getMoves();
+        string message = "Moves: " + std::to_string(moves);
+        coloredPrint(BLACK, y, MOVE_MSG_STARTING_X, message);
+    }
 
     // Draw the message (if any)
-    if (this->currentMessageIndex == 1)
+    if (this->currentMessageIndex == 0)
+    {
+        return;
+    }
+    else if (this->currentMessageIndex <= 1)
     {
         coloredPrint(YELLOW, y, MSG_STARTING_X, string(MESSAGES[1]) + string(MESSAGES[2]));
     }
-    else if (this->currentMessageIndex == 3)
+    else if (this->currentMessageIndex < LOAD_SAVE_MSG_INDEX)
     {
         coloredPrint(YELLOW, y, MSG_STARTING_X, string(MESSAGES[3]));
     }
-    else if (this->currentMessageIndex >= 4) // Errors
+    else if (this->currentMessageIndex < ERROR_MSG_INDEX)
     {
-        coloredPrint(RED, y, MSG_STARTING_X, string(MESSAGES[4]) + string(MESSAGES[2]));
+        coloredPrint(this->currentMessageIndex <  LOAD_SAVE_MSG_INDEX + 2 ? RED : GREEN, y, MSG_STARTING_X, string(MESSAGES[this->currentMessageIndex]) + string(MESSAGES[2]));
+    }
+    else // Errors
+    {
+        coloredPrint(RED, y, MSG_STARTING_X, string(MESSAGES[ERROR_MSG_INDEX]) + string(MESSAGES[2]));
     }
 }
 

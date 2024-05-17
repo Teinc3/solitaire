@@ -8,6 +8,9 @@
 constexpr int MSG_STARTING_X = 2;
 constexpr int MOVE_MSG_STARTING_X = 62;
 constexpr int MAX_MSG_LENGTH = 56;
+
+constexpr int LOAD_SAVE_MSG_INDEX = 4;
+constexpr int ERROR_MSG_INDEX = 8;
 constexpr const char* MESSAGES[] = {
     "", // No message
     "Congratulations! You won!", // Yellow
@@ -15,6 +18,8 @@ constexpr const char* MESSAGES[] = {
     "Auto Finish (Enter to Confirm)", // Yellow
     "Unable to Save Game", // Red
     "Unable to Load Game", // Red
+    "Game Saved", // Green
+    "Game Loaded", // Green
     "Invalid move", // Red
     // Add more invalid moves here, so index will not fuck up
 };
@@ -48,7 +53,7 @@ private:
     void drawUnusedPile();
     void drawStack(int);
     void drawFoundation(Suit);
-    void drawMessage();
+    void drawMessage(bool);
 
     int drawCard(int, int, int, int, Card*[]);
     void drawCardDivider(int, int, bool);
