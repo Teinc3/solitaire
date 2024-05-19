@@ -9,7 +9,6 @@ This game was built solo to inch (mock) freeriders for being completely useless 
 Although there are insane amounts of antipatterns in the code... So I guess I'm not doing much better.
 
 ## Todo
-- Complete `Persistence` class for saving and loading games
 - Change color function to allow multiple colors within a string 
 - Add information page to the game, explaining instructions and controls
 

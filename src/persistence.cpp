@@ -238,47 +238,58 @@ bool Persistence::readFoundationData(char* saveData, int saveDataStartIndex, int
         {
             return false;
         }
-        // Add all cards below the topmost card to the foundation
-        int currDecrement = 1;
-        do 
+
+        int cardValue = card->getValue();
+        char initSuitData = static_cast<char>(card->getSuit()) * MAX_VALUE;
+        for (int j = 0; j < cardValue; j++)
         {
-            this->board->addCardToFoundation(card->getSuit(), card);
-            card = readCardData(saveData[saveDataStartIndex + i] - currDecrement);
-            currDecrement++;
+            Card* newCard = this->deck[initSuitData + j];
+            this->board->addCardToFoundation(card->getSuit(), newCard);
         }
-        while (card != nullptr);
     }
     return true;
 }
 
 bool Persistence::readUnusedData(char* saveData, int saveDataStartIndex, int saveDataEndIndex)
 {
-    int currUnusedIndex = saveData[saveDataStartIndex]; // 1byte
+    int unusedCardsRemaining = saveData[saveDataStartIndex]; // 1byte
     saveDataStartIndex += 1;
-    int unusedCardCount = saveDataEndIndex - saveDataStartIndex; // endIndex is exclusive
+    int unusedCardCount = saveDataEndIndex - saveDataStartIndex;
 
-    // First we write all unused cards to a temporary array
     Card* unusedCards[unusedCardCount];
-    int unusedIndex = currUnusedIndex;
-    int i = 0;
-    do
-    {   
-        int dataIndex = saveDataStartIndex + unusedIndex;
-        if (dataIndex >= saveDataEndIndex)
-        {
-            dataIndex -= unusedCardCount;
-        }
+    // 0 + 23 = 24 - 1 -> remainingCards + currUnusedIndex = unusedCardCount - 1
+    int currUnusedIndex = unusedCardCount - unusedCardsRemaining - 1;
 
-        Card* card = readCardData(saveData[dataIndex]);
+    /* Init buffer formula
+    unusedCardsRemaining_unusedIndex: initBuffer
+    24_-1: 24->0
+    23_0: 24->0
+    22_1: 23
+    16_7: 17
+    1_22: 2
+    0_23: 1
+
+    At remaining = totalCount, currCard is nullptr, and is not drawn, hence no offset by 1
+    */
+
+    // Skip to the topmost card in the unused pile
+    int initBuffer = ((unusedCardsRemaining == unusedCardCount ? 0 : 1) + unusedCardsRemaining) % unusedCardCount;
+    // Range of currBuffer: [0, unusedCardCount - 1]
+    int currBuffer = initBuffer;
+    int cardIndex = 0;
+    do
+    {
+        int byteIndex = saveDataStartIndex + currBuffer;
+        Card* card = readCardData(saveData[byteIndex]);
         if (card == nullptr)
         {
             return false;
         }
-        unusedCards[i] = card;
-        unusedIndex = (unusedIndex + 1) % unusedCardCount;
-        i++;
-    } 
-    while (unusedIndex != currUnusedIndex && i < unusedCardCount);
+        unusedCards[cardIndex] = card;
+        currBuffer = (currBuffer + 1) % unusedCardCount;
+        cardIndex++;
+    }
+    while (currBuffer != initBuffer);
 
     // Then we add the cards to the unused Pile
     return this->board->loadUnusedCards(unusedCards, unusedCardCount, currUnusedIndex);

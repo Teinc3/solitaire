@@ -221,16 +221,17 @@ void Board::addMoves()
 
 bool Board::loadUnusedCards(Card** cardOrder, int cardOrderLength, int currUnusedIndex)
 {
-    // Check if cardOrderLength is greater than the size of the unusedCards vector
-    if (cardOrderLength > this->unusedCards->size())
-    {
-        return false;
-    }
-
     // Load unused cards
     for (int i = 0; i < cardOrderLength; i++)
     {
-        this->unusedCards->push_back(cardOrder[i]);
+        Card* card = cardOrder[i];
+        this->unusedCards->push_back(card);
+
+        // Note: The card is not face up by default. If we are not at the current unused index, we need to set it to face down
+        if (i != currUnusedIndex)
+        {
+            card->setIsFaceUp(false);
+        }
     }
     // Set the current unused card index
     this->unusedCardIndex = currUnusedIndex;
