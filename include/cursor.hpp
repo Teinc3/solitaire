@@ -33,7 +33,7 @@ public:
 
     void onNewGame();
 
-    void drawCursor();
+    void render();
     void clampCursorPiles();
 
     void updateHorizCursorX(bool);

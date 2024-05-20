@@ -91,8 +91,9 @@ enum MenuOption
 enum GameState
 {
     MAIN_MENU,
-    PLAYING,
-    GAME_MENU
+    GAME_MENU,
+    INFO_PAGE,
+    PLAYING
 };
 
 struct Card

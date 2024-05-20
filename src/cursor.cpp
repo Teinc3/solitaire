@@ -20,7 +20,7 @@ void Cursor::onNewGame()
     }
 }
 
-void Cursor::drawCursor()
+void Cursor::render()
 {
     // Draw the horizontal cursors first
     int baseX = HORIZ_CURSOR_XPOS[this->horizCursorXIndex];

@@ -30,6 +30,7 @@ Display::Display(Game* game)
 
     this->game = game;
     this->cursor = new Cursor(this->game->getBoard());
+    this->info = new Info();
     
     onNewGame();
 }
@@ -41,9 +42,11 @@ Display::~Display()
     endwin();  // End curses mode
 
     delete this->cursor;
+    delete this->info;
 
     this->game = nullptr;
     this->cursor = nullptr;
+    this->info = nullptr;
 }
 
 void Display::onNewGame()
@@ -64,11 +67,14 @@ void Display::render()
     case GameState::MAIN_MENU:
         drawMenu(false);
         break;
-    case GameState::PLAYING:
-        drawGameBoard();
-        break;
     case GameState::GAME_MENU:
         drawMenu(true);
+        break;
+    case GameState::INFO_PAGE:
+        this->info->render();
+        break;
+    case GameState::PLAYING:
+        drawGameBoard();
         break;
     default:
         break;
@@ -82,6 +88,11 @@ void Display::render()
 Cursor* Display::getCursor()
 {
     return this->cursor;
+}
+
+Info* Display::getInfo()
+{
+    return this->info;
 }
 
 void Display::setMessage(int messageIndex)
@@ -146,8 +157,8 @@ void Display::drawMenu(bool isGameMenu) {
 // Reference docs/game_design.txt for design
 void Display::drawGameBoard()
 {
-    drawDelimiter(9);
-    drawDelimiter(59);
+    drawVerticalDelimiter(9);
+    drawVerticalDelimiter(59);
 
     drawUnusedPile();
     for (int i = 0; i < STACK_COUNT; i++)
@@ -159,10 +170,10 @@ void Display::drawGameBoard()
         drawFoundation(static_cast<Suit>(i));
     }
 
-    this->cursor->drawCursor();
+    this->cursor->render();
 }
 
-void Display::drawDelimiter(int x)
+void Display::drawVerticalDelimiter(int x)
 {
     for (int i = 1; i < HEIGHT - 2; i++)
     {

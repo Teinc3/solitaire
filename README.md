@@ -4,13 +4,9 @@ by Teinc3
 ## Description
 A simple solitaire game written in C++ that can be played in the terminal.
 
-This game was built solo to inch (mock) freeriders for being completely useless in a group project (Course: COMP2113/ENGG1340)
-
-Although there are insane amounts of antipatterns in the code... So I guess I'm not doing much better.
-
 ## Todo
-- Change color function to allow multiple colors within a string 
-- Add information page to the game, explaining instructions and controls
+- Change color function to allow multiple colors within a string
+- Release executables for Windows and Unix
 
 ## How to play
 - Build the game using **makefile** or download the executable from the releases

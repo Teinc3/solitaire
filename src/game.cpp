@@ -130,7 +130,12 @@ void Game::handleInput()
             return;
         }
 
-        if (this->gameState == GameState::PLAYING)
+        if (this->gameState == GameState::INFO_PAGE)
+        {
+            // Regress to the previous menu
+            this->gameState = this->display->getInfo()->getPrevMenuState();
+        }
+        else if (this->gameState == GameState::PLAYING)
         {
             this->gameState = GameState::GAME_MENU;
         }
@@ -242,24 +247,37 @@ void Game::handleArrowKeys(ArrowKey arrowKey)
     switch (arrowKey)
     {
     case ArrowKey::UP:
-        if (this->gameState != GameState::PLAYING && this->menuOption > MenuOption::NEW_GAME)
+        switch (this->gameState)
         {
-            this->menuOption = static_cast<MenuOption>(this->menuOption - 1);
-        }
-        else
-        {
-            // Decrease the vertical index of the cursor
+        case GameState::PLAYING:
+            // Increase the vertical index of the cursor
             this->display->getCursor()->updateVerticalCursorIndex(true);
+            break;
+        case GameState::INFO_PAGE:
+            this->display->getInfo()->shiftRow(false);
+            break;
+        default:
+            if (this->menuOption > MenuOption::NEW_GAME)
+            {
+                this->menuOption = static_cast<MenuOption>(this->menuOption - 1);
+            }
         }
         break;
     case ArrowKey::DOWN:
-        if (this->gameState != GameState::PLAYING && this->menuOption < MenuOption::QUIT)
+        switch (this->gameState)
         {
-            this->menuOption = static_cast<MenuOption>(this->menuOption + 1);
-        }
-        else
-        {
+        case GameState::PLAYING:
+            // Increase the vertical index of the cursor
             this->display->getCursor()->updateVerticalCursorIndex(false);
+            break;
+        case GameState::INFO_PAGE:
+            this->display->getInfo()->shiftRow(true);
+            break;
+        default:
+            if (this->menuOption < MenuOption::QUIT)
+            {
+                this->menuOption = static_cast<MenuOption>(this->menuOption + 1);
+            }
         }
         break;
     case ArrowKey::RIGHT:
@@ -285,7 +303,7 @@ void Game::handleEnterKey()
     {
         return;
     }
-    if (this->gameState != GameState::PLAYING)
+    if (this->gameState <= GameState::GAME_MENU)
     {
         int result = 0;
 
@@ -326,6 +344,11 @@ void Game::handleEnterKey()
             }
             break;
 
+        case MenuOption::INFO:
+            this->display->getInfo()->setPrevMenuState(this->gameState);
+            this->gameState = GameState::INFO_PAGE;
+            break;
+
         case MenuOption::QUIT:
             if (this->gameState == GameState::MAIN_MENU) // Quit Game
             {
@@ -335,9 +358,6 @@ void Game::handleEnterKey()
             {
                 this->gameState = GameState::MAIN_MENU;
             }
-            break;
-
-        default:
             break;
         }
     }

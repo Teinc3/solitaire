@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "game.hpp"
 #include "cursor.hpp"
+#include "info.hpp"
 
 constexpr int MSG_STARTING_X = 2;
 constexpr int MOVE_MSG_STARTING_X = 62;
@@ -20,7 +21,7 @@ constexpr const char* MESSAGES[] = {
     "Game Saved", // Green
     "Game Loaded", // Green
     "Invalid move", // Red
-    // Add more invalid moves here, so index will not fuck up
+    // Add more invalid moves in the future if needed, so index will not fuck up
 };
 
 class Display {
@@ -33,6 +34,7 @@ public:
     void render();
 
     Cursor* getCursor();
+    Info* getInfo();
 
     void setMessage(int);
     bool resetMessage(bool);
@@ -42,13 +44,14 @@ private:
 
     Cursor* cursor = nullptr;
     Game* game = nullptr;
+    Info* info = nullptr;
 
     void drawBoundary();
     void drawMenu(bool);
     void drawGameBoard();
 
     // Secondary drawing functions
-    void drawDelimiter(int);
+    void drawVerticalDelimiter(int);
     void drawUnusedPile();
     void drawStack(int);
     void drawFoundation(Suit);
