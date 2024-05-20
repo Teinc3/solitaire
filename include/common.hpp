@@ -51,26 +51,18 @@ constexpr int HORIZ_CURSOR_XPOS[10] = { 2, 10, 17, 24, 31, 38, 45, 52, 60, 67 };
 
 constexpr int EMPTY_PILE_CURSORPIILE_YHEIGHT = HEIGHT - 5;
 
-#define GREEN 1
-#define RED 2
-#define BLACK 3
-#define YELLOW 4
-#define BLUE 5
+constexpr int COLORPAIR_COUNT = 7;
 
-/*
-#define RESET "\033[0m"
-#define BLACK "\033[30m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define YELLOW "\033[33m"
-#define BLUE "\033[34m"
-#define MAGENTA "\033[35m"
-#define CYAN "\033[36m"
-#define WHITE "\033[37m"
-*/
-
-void coloredPrint(int, int, int, string);
-string formatString(string, size_t, string[]);
+enum ColorPair
+{
+    WHITE = 0, // Unused
+    RED,
+    GREEN,
+    BLUE,
+    YELLOW,
+    CYAN,
+    MAGENTA
+};
 
 enum Suit
 {
@@ -103,4 +95,16 @@ struct Card
     bool isFaceUp;
 };
 
+struct ColorRange
+{
+    ColorPair color;
+    // Exclusive
+    int end;
+};
+
+// Prints text in a single color
+void monoColorPrint(ColorPair, int, int, string);
+// Prints text in multiple colors
+void multiColorPrint(int, int, string, int, ColorRange*);
+string formatString(string, size_t, string[]);
 bool isRed(Suit);

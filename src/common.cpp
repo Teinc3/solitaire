@@ -1,10 +1,29 @@
 #include "common.hpp"
 
-void coloredPrint(int colorPair, int y, int x, string text)
+void monoColorPrint(ColorPair colorPair, int y, int startingX, string text)
 {
-    attron(COLOR_PAIR(colorPair));
-    mvprintw(y, x, text.c_str());
-    attroff(COLOR_PAIR(colorPair));
+    int color = static_cast<int>(colorPair);
+    attron(COLOR_PAIR(color));
+    mvprintw(y, startingX, text.c_str());
+    attroff(COLOR_PAIR(color));
+}
+
+void multiColorPrint(int y, int startingX, string text, int colorCount, ColorRange* colorRanges)
+{
+    int charIndex = 0;
+    for (int colorRangeIndex = 0; colorRangeIndex < colorCount; colorRangeIndex++)
+    {
+        int color = static_cast<int>(colorRanges[colorRangeIndex].color);
+        attron(COLOR_PAIR(color));
+
+        // Print text of the current color range
+        for (; charIndex < colorRanges[colorRangeIndex].end; charIndex++)
+        {
+            mvaddch(y, startingX++, text[charIndex]);
+        }
+        
+        attroff(COLOR_PAIR(color));
+    }
 }
 
 string formatString(string format, size_t argc, string argv[])

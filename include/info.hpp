@@ -18,14 +18,14 @@ const string_view TUTORIAL[] = {
 };
 const string_view CONTROLS[] = {
     "Controls",
-    "* Arrow Keys to move the cursor or change pagination",
-    "* Enter key to lock the cursor or make a move",
-    "* Backspace/Delete key to toggle Menu or dismiss errors"
+    "- Arrow Keys to move the cursor or change pagination",
+    "- Enter key to lock the cursor or make a move",
+    "- Backspace/Delete key to toggle Menu or dismiss errors"
 };
 const string_view ABOUT[] = {
     "About",
-    "SOLITAIRE  by Teinc3",
-    "Unnamed Prerelease @ May 20 2024",
+    "SOLITAIRE by Teinc3",
+    "Unnamed Prerelease - May 21,2024",
     "Created for COMP2113/ENGG1340 Freeriders",
 };
 constexpr int SECTION_LENGTH[3] = { 8, 4, 4 };

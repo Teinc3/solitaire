@@ -28,14 +28,14 @@ void Cursor::render()
 
     if (this->horizCursorXIndex <= STACK_COUNT)
     {
-        coloredPrint(YELLOW, cursorPile.startingY - 1, baseX + 2, "vvv");
-        coloredPrint(YELLOW, cursorPile.startingY + cursorPile.yHeight, baseX + 2, "^^^");
+        monoColorPrint(ColorPair::YELLOW, cursorPile.startingY - 1, baseX + 2, "vvv");
+        monoColorPrint(ColorPair::YELLOW, cursorPile.startingY + cursorPile.yHeight, baseX + 2, "^^^");
     }
     else
     {
         int yPos = cursorPile.startingY + 1 + cursorPile.currentCursorVerticalIndex * (cursorPile.yHeight + 1);
-        coloredPrint(YELLOW, yPos - 2, baseX + 2, "vvv");
-        coloredPrint(YELLOW, yPos + 2, baseX + 2, "^^^");
+        monoColorPrint(ColorPair::YELLOW, yPos - 2, baseX + 2, "vvv");
+        monoColorPrint(ColorPair::YELLOW, yPos + 2, baseX + 2, "^^^");
     }
 
     // Now draw vertical cursors
@@ -77,9 +77,9 @@ void Cursor::render()
     {
         yPos = cursorPile.startingY + 1 + (cursorPile.currentCursorVerticalIndex) * (cursorPile.yHeight + 1);
     }
-
-    coloredPrint(this->isLockedCursor ? YELLOW : BLUE, yPos, baseX, ">");
-    coloredPrint(this->isLockedCursor ? YELLOW : BLUE, yPos, baseX + 6, "<");
+    ColorPair color = this->isLockedCursor ? ColorPair::YELLOW : ColorPair::BLUE;
+    monoColorPrint(color, yPos, baseX, ">");
+    monoColorPrint(color, yPos, baseX + 6, "<");
 }
 
 

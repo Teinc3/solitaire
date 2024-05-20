@@ -41,7 +41,7 @@ void Info::render()
         // Print the text
         int newLineIndex = text.find("\n");
         string line = text.substr(0, newLineIndex);
-        coloredPrint(5, i, 2, line);
+        monoColorPrint(ColorPair::BLUE, i, 2, line);
         text = text.substr(newLineIndex + 1);
     }
 }

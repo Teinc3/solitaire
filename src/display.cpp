@@ -10,11 +10,13 @@ Display::Display(Game* game)
     curs_set(0);
 
     start_color();
-    init_pair(1, COLOR_GREEN, COLOR_BLACK); // Default text color
-    init_pair(RED, COLOR_RED, COLOR_BLACK); // Red text color
-    init_pair(BLACK, COLOR_WHITE, COLOR_BLACK); // White text color
-    init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK); // Yellow text color
-    init_pair(BLUE, COLOR_BLUE, COLOR_BLACK); // Blue text color
+    // Ignore WHITE, as it is default
+    init_pair(ColorPair::RED, COLOR_RED, COLOR_BLACK);
+    init_pair(ColorPair::GREEN, COLOR_GREEN, COLOR_BLACK);
+    init_pair(ColorPair::BLUE, COLOR_BLUE, COLOR_BLACK);
+    init_pair(ColorPair::YELLOW, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(ColorPair::CYAN, COLOR_CYAN, COLOR_BLACK);
+    init_pair(ColorPair::MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
 
     int max_y = 0, max_x = 0;
     getmaxyx(stdscr, max_y, max_x);  // Get the size of the window
@@ -117,14 +119,13 @@ bool Display::resetMessage(bool isBackspace)
 
 void Display::drawBoundary()
 {
-
-    for (int i = 0; i < HEIGHT - 1; i++)
+    for (int y = 0; y < HEIGHT - 1; y++)
     {
-        for (int j = 0; j < MIN_WIDTH; j++)
+        for (int x = 0; x < MIN_WIDTH; x++)
         {
-            if (i == 0 || i == HEIGHT - 2 || j == 0 || j == MIN_WIDTH - 1)
+            if (y == 0 || y == HEIGHT - 2 || x == 0 || x == MIN_WIDTH - 1)
             {
-                coloredPrint(GREEN, i, j, "#");  // Print # at the boundary
+                monoColorPrint(ColorPair::GREEN, y, x, "#");  // Print # at the boundary
             }
         }
     }
@@ -133,25 +134,23 @@ void Display::drawBoundary()
 void Display::drawMenu(bool isGameMenu) {
     int start_y = (HEIGHT - 10) / 2;  // Calculate the starting y position
     int start_x = (MIN_WIDTH - 27) / 2;  // Calculate the starting x position
-
-    MenuOption menuOption = this->game->getMenuOption();
-    bool menuOptions[4] = { menuOption == MenuOption::NEW_GAME, menuOption == MenuOption::LOAD_SAVE_GAME, menuOption == MenuOption::INFO, menuOption == MenuOption::QUIT };
-    string arg1[3] = { menuOptions[0] ? ">" : " ", isGameMenu && !this->game->getHasAlreadyWon() ? "Continue" : "New Game", menuOptions[0] ? "<" : " " };
-    string arg2[3] = { menuOptions[1] ? ">" : " ", isGameMenu ? "Save" : "Load", menuOptions[1] ? "<" : " " };
-    string arg3[2] = { menuOptions[2] ? ">" : " ", menuOptions[2] ? "<" : " " };
-    string arg4[3] = { menuOptions[3] ? ">" : " ", isGameMenu ? "Stop" : "Quit", menuOptions[3] ? "<" : " " };
     
-    coloredPrint(BLACK, start_y + 0, start_x, "+=========================+");
-    coloredPrint(RED, start_y + 1, start_x, "|        SOLITAIRE        |");
-    coloredPrint(RED, start_y + 2, start_x, "|        by Teinc3        |");
-    coloredPrint(BLACK, start_y + 3, start_x, "+-------------------------+");
-    coloredPrint(menuOptions[0] ? YELLOW : BLUE, start_y + 4, start_x, formatString("|     ~ 1. ~ ~     |", 3, arg1));
-    coloredPrint(menuOptions[1] ? YELLOW : BLUE, start_y + 5, start_x, formatString("|    ~ 2. ~ Game ~     |", 3, arg2));
-    coloredPrint(menuOptions[2] ? YELLOW : BLUE, start_y + 6, start_x, formatString("|   ~ 3. Information ~    |", 2, arg3));
-    coloredPrint(menuOptions[3] ? YELLOW : BLUE, start_y + 7, start_x, formatString("|    ~ 4. ~ Game ~     |", 3, arg4));
-    coloredPrint(BLACK, start_y + 8, start_x, "+=========================+");
+    string options[4] = {
+        formatString("|     ~ 1. ~ ~     |", 3, (string[]){ isMenuOption(MenuOption::NEW_GAME) ? ">" : " ", isGameMenu ? "Continue" : "New Game", isMenuOption(MenuOption::NEW_GAME) ? "<" : " " }),
+        formatString("|    ~ 2. ~ Game ~     |", 3, (string[]){ isMenuOption(MenuOption::LOAD_SAVE_GAME) ? ">" : " ", isGameMenu ? "Save" : "Load", isMenuOption(MenuOption::LOAD_SAVE_GAME) ? "<" : " " }),
+        formatString("|   ~ 3. Information ~    |", 2, (string[]){ isMenuOption(MenuOption::INFO) ? ">" : " ", isMenuOption(MenuOption::INFO) ? "<" : " " }),
+        formatString("|    ~ 4. ~ ~     |", 3, (string[]){ isMenuOption(MenuOption::QUIT) ? ">" : " ", isGameMenu ? "Quit Game" : "Leave App", isMenuOption(MenuOption::QUIT) ? "<" : " " })
+    };
 
-    refresh();  // Refresh the screen to show the menu
+    monoColorPrint(ColorPair::WHITE, start_y++, start_x, "+=========================+");
+    multiColorPrint(start_y++, start_x, "|        SOLITAIRE        |", 3, (ColorRange[]){ { ColorPair::WHITE, 9 }, { ColorPair::RED, 18 }, { ColorPair::WHITE, 27 } });
+    multiColorPrint(start_y++, start_x, "|        by Teinc3        |", 3, (ColorRange[]){ { ColorPair::WHITE, 9 }, { ColorPair::MAGENTA, 18}, { ColorPair::WHITE, 27 } });
+    monoColorPrint(ColorPair::WHITE, start_y++, start_x, "+-------------------------+");
+    multiColorPrint(start_y++, start_x, options[0], 3, (ColorRange[]){ { ColorPair::WHITE, 6 }, { isMenuOption(MenuOption::NEW_GAME) ? ColorPair::YELLOW : ColorPair::CYAN, 21 }, { ColorPair::WHITE, 27 } });
+    multiColorPrint(start_y++, start_x, options[1], 3, (ColorRange[]){ { ColorPair::WHITE, 5 }, { isMenuOption(MenuOption::LOAD_SAVE_GAME) ? ColorPair::YELLOW : ColorPair::CYAN, 21 }, { ColorPair::WHITE, 27 } });
+    multiColorPrint(start_y++, start_x, options[2], 3, (ColorRange[]){ { ColorPair::WHITE, 4 }, { isMenuOption(MenuOption::INFO) ? ColorPair::YELLOW : ColorPair::CYAN, 22 }, { ColorPair::WHITE, 27 } });
+    multiColorPrint(start_y++, start_x, options[3], 3, (ColorRange[]){ { ColorPair::WHITE, 5 }, { isMenuOption(MenuOption::QUIT) ? ColorPair::YELLOW : ColorPair::CYAN, 21 }, { ColorPair::WHITE, 27 } });
+    monoColorPrint(ColorPair::WHITE, start_y++, start_x, "+=========================+");
 }
 
 // Reference docs/game_design.txt for design
@@ -177,7 +176,7 @@ void Display::drawVerticalDelimiter(int x)
 {
     for (int i = 1; i < HEIGHT - 2; i++)
     {
-        coloredPrint(GREEN, i, x, "|");
+        monoColorPrint(ColorPair::GREEN, i, x, "|");
     }
 }
 
@@ -201,13 +200,13 @@ void Display::drawUnusedPile()
         if (nextCard == nullptr)
         {   
             drawCardDivider(start_x, y++, true);
-            coloredPrint(GREEN, y++, start_x, "| X |");
+            multiColorPrint(y++, start_x, "| X |", 3, (ColorRange[]){ { ColorPair::GREEN, 2 }, { ColorPair::CYAN, 3}, { ColorPair::GREEN, 5} });
             drawCardDivider(start_x, y++, false);
 
             int cardValue = currCard->value;
             Suit cardSuit = currCard->suit;
-            string args[3] = { getValueChar(cardValue).c_str(), cardValue == 10 ? "" : " ", getSuitChar(cardSuit).c_str() };
-            coloredPrint(isRed(cardSuit) ? RED : BLACK, y++, start_x, formatString("|~~~|", 3, args));
+            string text = formatString("|~~~|", 3, (string[]){ getValueChar(cardValue).c_str(), cardValue == 10 ? "" : " ", getSuitChar(cardSuit).c_str() });
+            multiColorPrint(y++, start_x, text, 3, (ColorRange[]){ { ColorPair::GREEN, 1 }, { isRed(cardSuit) ? ColorPair::RED : ColorPair::WHITE, 4 }, { ColorPair::GREEN, 5 } });
             
             drawCardDivider(start_x, y, true);
         }
@@ -255,10 +254,9 @@ void Display::drawFoundation(Suit suitIndex)
 
     if (foundationLength == 0)
     {   
+        drawCardDivider(start_x, start_y++, true);
+        multiColorPrint(start_y++, start_x, formatString("| ~ |", 1, (string[]){ getSuitChar(suitIndex).c_str() }), 3, (ColorRange[]){ { ColorPair::GREEN, 1 }, { isRed(suitIndex) ? ColorPair::RED : ColorPair::WHITE, 3 }, { ColorPair::GREEN, 5 } });
         drawCardDivider(start_x, start_y, true);
-        string args[1] = { getSuitChar(suitIndex).c_str() };
-        coloredPrint(suitIndex % 2 == 0 ? RED : BLACK, start_y + 1, start_x, formatString("| ~ |", 1, args));
-        drawCardDivider(start_x, start_y + 2, true);
     }
     else
     {
@@ -279,7 +277,7 @@ void Display::drawMessage(bool drawMoves)
         // Draw moves at x = 62
         int moves = this->game->getBoard()->getMoves();
         string message = "Moves: " + std::to_string(moves);
-        coloredPrint(BLACK, y, MOVE_MSG_STARTING_X, message);
+        monoColorPrint(ColorPair::MAGENTA, y, MOVE_MSG_STARTING_X, message);
     }
 
     // Draw the message (if any)
@@ -289,19 +287,19 @@ void Display::drawMessage(bool drawMoves)
     }
     else if (this->currentMessageIndex <= 1)
     {
-        coloredPrint(YELLOW, y, MSG_STARTING_X, string(MESSAGES[1]) + string(MESSAGES[2]));
+        monoColorPrint(ColorPair::CYAN, y, MSG_STARTING_X, string(MESSAGES[1]) + string(MESSAGES[2]));
     }
     else if (this->currentMessageIndex < LOAD_SAVE_MSG_INDEX)
     {
-        coloredPrint(YELLOW, y, MSG_STARTING_X, string(MESSAGES[3]));
+        monoColorPrint(ColorPair::YELLOW, y, MSG_STARTING_X, string(MESSAGES[3]));
     }
     else if (this->currentMessageIndex < ERROR_MSG_INDEX)
     {
-        coloredPrint(this->currentMessageIndex <  LOAD_SAVE_MSG_INDEX + 2 ? RED : GREEN, y, MSG_STARTING_X, string(MESSAGES[this->currentMessageIndex]) + string(MESSAGES[2]));
+        monoColorPrint(this->currentMessageIndex <  LOAD_SAVE_MSG_INDEX + 2 ? ColorPair::RED : ColorPair::GREEN, y, MSG_STARTING_X, string(MESSAGES[this->currentMessageIndex]) + string(MESSAGES[2]));
     }
     else // Errors
     {
-        coloredPrint(RED, y, MSG_STARTING_X, string(MESSAGES[ERROR_MSG_INDEX]) + string(MESSAGES[2]));
+        monoColorPrint(ColorPair::RED, y, MSG_STARTING_X, string(MESSAGES[ERROR_MSG_INDEX]) + string(MESSAGES[2]));
     }
 }
 
@@ -326,7 +324,7 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
         {
             hiddenText = "|" + std::to_string(hiddenCount) + "?|";
         }
-        coloredPrint(GREEN, current_y++, start_x, hiddenText.c_str());
+        multiColorPrint(current_y++, start_x, hiddenText, 3, (ColorRange[]){ { ColorPair::GREEN, 1 }, { ColorPair::CYAN, 4 }, { ColorPair::GREEN, 5 } });
         drawCardDivider(start_x, current_y++, visibleCount <= 0);
     }
     for (int i = 0; i < visibleCount; i++)
@@ -335,8 +333,7 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
         int cardValue = card->value;
         Suit cardSuit = card->suit;
 
-        string args[2] = { (getValueChar(cardValue) + (cardValue == 10 ? "" : " ")).c_str(), getSuitChar(cardSuit).c_str() };
-        coloredPrint(isRed(card->suit) ? RED : BLACK, current_y++, start_x, formatString("|~~|", 2, args));
+        multiColorPrint(current_y++, start_x, formatString("|~~|", 2, (string[]){ (getValueChar(cardValue) + (cardValue == 10 ? "" : " ")).c_str(), getSuitChar(cardSuit).c_str() }), 3, (ColorRange[]){ { ColorPair::GREEN, 1 }, { isRed(cardSuit) ? ColorPair::RED : ColorPair::WHITE, 4 }, { ColorPair::GREEN, 5 } });
     }
     if (visibleCount > 0)
     {
@@ -348,8 +345,7 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
 
 void Display::drawCardDivider(int x, int y, bool isEdge)
 {   
-    string args[1] = { isEdge ? "===" : "---" };
-    coloredPrint(GREEN, y, x, formatString("+~+", 1, args));
+    monoColorPrint(GREEN, y, x, formatString("+~+", 1, (string[]){ isEdge ? "===" : "---" }));
 };
 
 string Display::getSuitChar(Suit suit)
@@ -384,4 +380,9 @@ string Display::getValueChar(int value)
     default:
         return std::to_string(value);
     }
+}
+
+bool Display::isMenuOption(MenuOption menuOption)
+{
+    return this->game->getMenuOption() == menuOption;
 }

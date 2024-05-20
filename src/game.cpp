@@ -137,7 +137,7 @@ void Game::handleInput()
         }
         else if (this->gameState == GameState::PLAYING)
         {
-            this->gameState = GameState::GAME_MENU;
+            this->gameState = this->hasAlreadyWon ? GameState::MAIN_MENU : GameState::GAME_MENU;
         }
         return;
     }

@@ -1,6 +1,6 @@
 # Variables
 CXX = g++
-CXXFLAGS = -Wall -std=c++11 -g
+CXXFLAGS = -Wall -g -std=c++11 # Remove -g and add -O2 when release
 INCLUDES = -Iinclude
 
 SRC = $(wildcard src/*.cpp)

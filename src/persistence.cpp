@@ -256,6 +256,11 @@ bool Persistence::readUnusedData(char* saveData, int saveDataStartIndex, int sav
     saveDataStartIndex += 1;
     int unusedCardCount = saveDataEndIndex - saveDataStartIndex;
 
+    if (unusedCardsRemaining == 0 && unusedCardCount == 0)
+    {
+        return true;
+    }
+
     Card* unusedCards[unusedCardCount];
     // 0 + 23 = 24 - 1 -> remainingCards + currUnusedIndex = unusedCardCount - 1
     int currUnusedIndex = unusedCardCount - unusedCardsRemaining - 1;
@@ -297,7 +302,7 @@ bool Persistence::readUnusedData(char* saveData, int saveDataStartIndex, int sav
 
 bool Persistence::readMovesData(char* saveData, int saveDataStartIndex)
 {
-    int moveCount = (saveData[saveDataStartIndex] << 8) | saveData[saveDataStartIndex + 1];
+    int moveCount = (static_cast<unsigned char>(saveData[saveDataStartIndex]) << 8) | static_cast<unsigned char>(saveData[saveDataStartIndex + 1]);
     while (this->board->getMoves() < moveCount)
     {
         this->board->addMoves();

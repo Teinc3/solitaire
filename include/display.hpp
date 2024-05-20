@@ -62,4 +62,6 @@ private:
 
     string getSuitChar(Suit);
     string getValueChar(int);
+
+    bool isMenuOption(MenuOption);
 };
