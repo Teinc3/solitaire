@@ -128,7 +128,7 @@ void Cursor::clampCursorPiles()
 
             for (int j = 0; j < stackLength; j++)
             {
-                if (this->board->getCardFromStack(stackIndex, j)->getIsFaceUp())
+                if (this->board->getCardFromStack(stackIndex, j)->isFaceUp)
                 {
                     visibleCount++;
                 }

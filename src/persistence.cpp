@@ -199,8 +199,8 @@ void Persistence::writeCardData(Card* card, char* saveData, int* saveDataIndex)
     {
         return;
     }
-    int cardData = static_cast<int>(card->getSuit()) * MAX_VALUE + card->getValue() - 1;
-    if (card->getIsFaceUp())
+    int cardData = static_cast<int>(card->suit) * MAX_VALUE + card->value - 1;
+    if (card->isFaceUp)
     {
         saveData[*saveDataIndex] = cardData;
     }
@@ -217,13 +217,13 @@ bool Persistence::readStackData(char* saveData, int saveDataStartIndex, int save
     for (int i = 0; i < stackLength; i++)
     {
         Card* card = readCardData(saveData[saveDataStartIndex + i]);
-        bool isFaceUp = card->getIsFaceUp();
+        bool isFaceUp = card->isFaceUp;
         if (card == nullptr)
         {
             return false;
         }
         this->board->addCardToStack(stackIndex, card);
-        card->setIsFaceUp(isFaceUp); // Since board addCardToStack sets it to true
+        card->isFaceUp = isFaceUp; // Since board addCardToStack sets it to true
     }
     return true;
 }
@@ -239,12 +239,12 @@ bool Persistence::readFoundationData(char* saveData, int saveDataStartIndex, int
             return false;
         }
 
-        int cardValue = card->getValue();
-        char initSuitData = static_cast<char>(card->getSuit()) * MAX_VALUE;
+        int cardValue = card->value;
+        char initSuitData = static_cast<char>(card->suit) * MAX_VALUE;
         for (int j = 0; j < cardValue; j++)
         {
             Card* newCard = this->deck[initSuitData + j];
-            this->board->addCardToFoundation(card->getSuit(), newCard);
+            this->board->addCardToFoundation(card->suit, newCard);
         }
     }
     return true;
@@ -325,6 +325,6 @@ Card* Persistence::readCardData(char cardData)
     {
         return nullptr;
     }
-    card->setIsFaceUp(isFaceUp);
+    card->isFaceUp = isFaceUp;
     return card;
 }

@@ -63,9 +63,9 @@ void Game::finishGame()
         for (int j = 0; j < stackLength; j++)
         {
             Card* card = this->board->removeCardFromStack(i);
-            if (card->getValue() == MAX_VALUE)
+            if (card->value == MAX_VALUE)
             {
-                this->board->addCardToFoundation(card->getSuit(), card);
+                this->board->addCardToFoundation(card->suit, card);
             }
         }
     }
@@ -208,7 +208,7 @@ void Game::createCards()
 {
     // Create 52 cards
     for (int i = 0; i < 52; ++i) {
-        this->deck[i] = new Card(static_cast<Suit>(i / 13), i % 13 + 1);
+        this->deck[i] = new Card{ static_cast<Suit>(i / 13), i % 13 + 1} ;
     }
 }
 
@@ -312,7 +312,7 @@ void Game::handleEnterKey()
             {
                 createGame(true);
                 result = this->persistence->loadFile() ? 4 : 2;
-                
+
                 if (result == 2) // Load failed
                 {
                     this->gameState = GameState::MAIN_MENU;

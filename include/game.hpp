@@ -4,7 +4,6 @@
 #include <ctime>
 
 #include "common.hpp"
-#include "card.hpp"
 #include "persistence.hpp"
 
 // Forward declarations

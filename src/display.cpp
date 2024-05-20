@@ -193,8 +193,10 @@ void Display::drawUnusedPile()
             coloredPrint(GREEN, y++, start_x, "| X |");
             drawCardDivider(start_x, y++, false);
 
-            string args[3] = { getValueChar(currCard->getValue()).c_str(), currCard->getValue() == 10 ? "" : " ", getSuitChar(currCard->getSuit()).c_str() };
-            coloredPrint(currCard->getIsRed() ? RED : BLACK, y++, start_x, formatString("|~~~|", 3, args));
+            int cardValue = currCard->value;
+            Suit cardSuit = currCard->suit;
+            string args[3] = { getValueChar(cardValue).c_str(), cardValue == 10 ? "" : " ", getSuitChar(cardSuit).c_str() };
+            coloredPrint(isRed(cardSuit) ? RED : BLACK, y++, start_x, formatString("|~~~|", 3, args));
             
             drawCardDivider(start_x, y, true);
         }
@@ -224,7 +226,7 @@ void Display::drawStack(int stackIndex)
     for (int i = 0; i < stackLength; i++)
     {
         stack[i] = this->game->getBoard()->getCardFromStack(stackIndex, i);
-        stack[i]->getIsFaceUp() ? visibleCount++ : hiddenCount++;
+        stack[i]->isFaceUp ? visibleCount++ : hiddenCount++;
     }
     Card* visibleStack[visibleCount];
     for (int i = 0; i < visibleCount; i++)
@@ -319,11 +321,11 @@ int Display::drawCard(int start_x, int start_y, int hiddenCount, int visibleCoun
     for (int i = 0; i < visibleCount; i++)
     {
         Card* card = cards[i];
-        int cardValue = card->getValue();
-        Suit cardSuit = card->getSuit();
+        int cardValue = card->value;
+        Suit cardSuit = card->suit;
 
         string args[2] = { (getValueChar(cardValue) + (cardValue == 10 ? "" : " ")).c_str(), getSuitChar(cardSuit).c_str() };
-        coloredPrint(card->getIsRed() ? RED : BLACK, current_y++, start_x, formatString("|~~|", 2, args));
+        coloredPrint(isRed(card->suit) ? RED : BLACK, current_y++, start_x, formatString("|~~|", 2, args));
     }
     if (visibleCount > 0)
     {

@@ -60,11 +60,11 @@ void Board::distributeCards(Card* deck[MAX_CARDS])
     {
         for (int j = 0; j < i + 1; j++)
         {   
-            Card* cardp = deck[cardIndex];
-            this->stacks[i]->push_back(cardp);
+            Card* card = deck[cardIndex];
+            this->stacks[i]->push_back(card);
             if (j == i)
             {
-                cardp->setIsFaceUp(true);
+                card->isFaceUp = true;
             }
             cardIndex++;
         }
@@ -85,10 +85,7 @@ void Board::flipTopStackCards()
         if (stackLength > 0)
         {
             Card* card = this->stacks[i]->at(stackLength - 1);
-            if (!card->getIsFaceUp())
-            {
-                card->setIsFaceUp(true);
-            }
+            card->isFaceUp = true;
         }
     }
 }
@@ -96,7 +93,7 @@ void Board::flipTopStackCards()
 void Board::addCardToStack(int stackIndex, Card* card)
 {
     this->stacks[stackIndex]->push_back(card);
-    card->setIsFaceUp(true);
+    card->isFaceUp = true;
 }
 
 Card* Board::removeCardFromStack(int stackIndex)
@@ -125,7 +122,7 @@ void Board::addCardToFoundation(int foundationIndex, Card* card)
 {
     // Add a card to a foundation
     this->foundations[foundationIndex]->push_back(card);
-    card->setIsFaceUp(true);
+    card->isFaceUp = true;
 }
 
 Card* Board::removeCardFromFoundation(int foundationIndex)
@@ -187,7 +184,7 @@ Card* Board::shiftNextUnusedCard()
     // Hide the last card
     if (this->unusedCardIndex != -1)
     {
-        this->unusedCards->at(this->unusedCardIndex)->setIsFaceUp(false);
+        this->unusedCards->at(this->unusedCardIndex)->isFaceUp = false;
     }
     
     this->unusedCardIndex++;
@@ -198,7 +195,7 @@ Card* Board::shiftNextUnusedCard()
     }
     
     Card* card = this->unusedCards->at(this->unusedCardIndex);
-    card->setIsFaceUp(true);
+    card->isFaceUp = true;
 
     return card;
 }
@@ -230,7 +227,7 @@ bool Board::loadUnusedCards(Card** cardOrder, int cardOrderLength, int currUnuse
         // Note: The card is not face up by default. If we are not at the current unused index, we need to set it to face down
         if (i != currUnusedIndex)
         {
-            card->setIsFaceUp(false);
+            card->isFaceUp = false;
         }
     }
     // Set the current unused card index

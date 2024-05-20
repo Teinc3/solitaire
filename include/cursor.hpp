@@ -3,7 +3,6 @@
 #include "common.hpp"
 
 #include "board.hpp"
-#include "card.hpp"
 
 struct CursorPileInfo
 {

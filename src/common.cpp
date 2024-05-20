@@ -27,3 +27,8 @@ string formatString(string format, size_t argc, string argv[])
 
     return ss.str();
 }
+
+bool isRed(Suit suit)
+{
+    return suit == Suit::DIAMONDS || suit == Suit::HEARTS;
+}

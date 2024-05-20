@@ -45,7 +45,7 @@ bool Logic::canAutoFinish()
         }
 
         Card* bottomCard = this->board->getCardFromStack(i, 0);
-        if (!bottomCard->getIsFaceUp())
+        if (!bottomCard->isFaceUp)
         {
             return false;
         }
@@ -98,7 +98,7 @@ bool Logic::handleStackSelection(int toStackIndex, int fromPileIndex, int vertic
         for (int i = 0; i < stackLength; i++)
         {
             Card* card = this->board->getCardFromStack(fromStackIndex, i);
-            if (!card->getIsFaceUp())
+            if (!card->isFaceUp)
             {
                 hiddenCount++;
             }
@@ -161,7 +161,7 @@ bool Logic::stackToStack(int cardIndex, int fromStackIndex, int toStackIndex)
     {
         cardsToMove[i] = this->board->getCardFromStack(fromStackIndex, cardIndex + i);
         // If any of the cards are face down, then we can't move them
-        if (!cardsToMove[i]->getIsFaceUp())
+        if (!cardsToMove[i]->isFaceUp)
         {
             return false;
         }
@@ -212,13 +212,13 @@ bool Logic::stackToFoundation(int stackIndex)
 
         // Get the card that will be moved from the stack
         Card* card = this->board->getCardFromStack(stackIndex, stackLength - 1);
-        if (!card->getIsFaceUp())
+        if (!card->isFaceUp)
         {
             break;
         }
 
         // Get suit of the card
-        int cardSuit = static_cast<int>(card->getSuit());
+        int cardSuit = static_cast<int>(card->suit);
         int foundationLength = this->board->getFoundationLength(cardSuit);
         if (foundationLength == 0)
         {
@@ -278,6 +278,13 @@ bool Logic::unusedToStack(int stackIndex)
             return false;
         }
     }
+    else
+    {
+        if (!canEmptyStackAcceptCard(card))
+        {
+            return false;
+        }
+    }
 
     // Move the card to the stack
     this->board->removeUnusedCard();
@@ -299,7 +306,7 @@ bool Logic::unusedToFoundation()
     }
 
     // Get suit of the card
-    int cardSuit = static_cast<int>(card->getSuit());
+    int cardSuit = static_cast<int>(card->suit);
     int foundationLength = this->board->getFoundationLength(cardSuit);
     if (foundationLength == 0)
     {
@@ -340,7 +347,7 @@ bool Logic::foundationToStack(int foundationIndex, int stackIndex)
 
     // Get the card that will be moved from the foundation
     Card* card = this->board->getCardFromFoundation(foundationIndex, this->board->getFoundationLength(foundationIndex) - 1);
-    if (!card->getIsFaceUp())
+    if (!card->isFaceUp)
     {
         return false;
     }
@@ -375,20 +382,20 @@ bool Logic::foundationToStack(int foundationIndex, int stackIndex)
 
 bool Logic::canExistingStackAcceptCard(Card* toCard, Card* fromCard)
 {
-    return (toCard->getValue() - 1 == fromCard->getValue()) && (toCard->getIsRed() != fromCard->getIsRed());
+    return (toCard->value - 1 == fromCard->value) && (isRed(toCard->suit) != isRed(fromCard->suit));
 }
 
 bool Logic::canEmptyStackAcceptCard(Card* card)
 {
-    return card->getValue() == 13;
+    return card->value == 13;
 }
 
 bool Logic::canEmptyFoundationAcceptCard(Card* card)
 {
-    return card->getValue() == 1;
+    return card->value == 1;
 }
 
 bool Logic::canExistingFoundationAcceptCard(Card* toCard, Card* fromCard)
 {
-    return (toCard->getValue() + 1 == fromCard->getValue()) && (toCard->getSuit() == fromCard->getSuit());
+    return (toCard->value + 1 == fromCard->value) && (toCard->suit == fromCard->suit);
 }

@@ -94,3 +94,12 @@ enum GameState
     PLAYING,
     GAME_MENU
 };
+
+struct Card
+{
+    Suit suit;
+    int value;
+    bool isFaceUp;
+};
+
+bool isRed(Suit);

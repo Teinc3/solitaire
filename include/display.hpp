@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "card.hpp"
 #include "game.hpp"
 #include "cursor.hpp"
 
