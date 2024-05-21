@@ -142,7 +142,7 @@ void Game::handleInput()
         return;
     }
 
-    if (_WIN32 && ch >= PSArrowKey::_UP && ch <= PSArrowKey::_DOWN)
+    if (WINDOWS && ch >= PSArrowKey::_UP && ch <= PSArrowKey::_DOWN)
     {
         // Map to arrow Keys if powershell
         switch (ch)

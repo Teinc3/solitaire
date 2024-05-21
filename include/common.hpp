@@ -8,8 +8,10 @@
 
 #ifdef _WIN32
     #include <curses.h>
+    #define WINDOWS 1
 #else
     #include <ncurses.h>
+    #define WINDOWS 0
 #endif
 
 enum PSArrowKey
