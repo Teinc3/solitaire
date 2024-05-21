@@ -77,7 +77,7 @@ void Info::addSectionText(int sectionIndex)
 {
     for (int i = 0; i < SECTION_LENGTH[sectionIndex]; i++)
     {
-        string_view text = (sectionIndex == 0) ? TUTORIAL[i] : (sectionIndex == 1) ? CONTROLS[i] : ABOUT[i];
+        string text = (sectionIndex == 0) ? TUTORIAL[i] : (sectionIndex == 1) ? CONTROLS[i] : ABOUT[i];
 
         // For Header we center it
         if (i == 0 || sectionIndex == 2)
@@ -100,7 +100,7 @@ void Info::addSectionText(int sectionIndex)
         }
 
         // Split the text into multiple lines if it exceeds the width
-        for (int j = 0; j < text.length(); j += MAX_INFO_WIDTH)
+        for (size_t j = 0; j < text.length(); j += MAX_INFO_WIDTH)
         {
             this->infoText += string(text.substr(j, MAX_INFO_WIDTH)) + "\n";
             this->rowCount++;

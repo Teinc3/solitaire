@@ -1,12 +1,8 @@
 # Solitaire
 A simple solitaire game written in C++ that can be played in the terminal.
 
-## Todo
-- Check compatibility with Windows and Unix
-- Release executables
-
 ## How to play
-- Build the game using **makefile** ~~or download the executable from the releases~~
+- Build the game using **makefile** or download the executable from the releases
 - Run the game using `./bin/solitaire` or double-click the executable
 
 ## Specifications

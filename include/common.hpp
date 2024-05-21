@@ -8,27 +8,25 @@
 
 #ifdef _WIN32
     #include <curses.h>
-    #define NCURSES 0
-    
-    enum ArrowKey
-    {
-        UP = 450,
-        LEFT = 452,
-        RIGHT = 454,
-        DOWN = 456
-    };
 #else
     #include <ncurses.h>
-    #define NCURSES 1
-
-    enum ArrowKey
-    {
-        DOWN = 258,
-        UP,
-        LEFT,
-        RIGHT
-    };
 #endif
+
+enum PSArrowKey
+{
+    _UP = 450,
+    _LEFT = 452,
+    _RIGHT = 454,
+    _DOWN = 456
+};
+
+enum ArrowKey
+{
+    DOWN = 258,
+    UP,
+    LEFT,
+    RIGHT
+};
 
 using std::string;
 using std::vector;

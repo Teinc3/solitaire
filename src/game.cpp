@@ -142,10 +142,28 @@ void Game::handleInput()
         return;
     }
 
-    if ((NCURSES == 1 && ch >= ArrowKey::DOWN && ch <= ArrowKey::RIGHT) || (NCURSES != 1 && ch >= ArrowKey::UP && ch <= ArrowKey::DOWN))
+    if (_WIN32 && ch >= PSArrowKey::_UP && ch <= PSArrowKey::_DOWN)
+    {
+        // Map to arrow Keys if powershell
+        switch (ch)
+        {
+        case PSArrowKey::_UP:
+            handleArrowKeys(ArrowKey::UP);
+            break;
+        case PSArrowKey::_DOWN:
+            handleArrowKeys(ArrowKey::DOWN);
+            break;
+        case PSArrowKey::_RIGHT:
+            handleArrowKeys(ArrowKey::RIGHT);
+            break;
+        case PSArrowKey::_LEFT:
+            handleArrowKeys(ArrowKey::LEFT);
+            break;
+        }
+    }
+    else if (ch >= ArrowKey::DOWN && ch <= ArrowKey::RIGHT)
     {
         handleArrowKeys(static_cast<ArrowKey>(ch));
-        return;
     }
 }
 

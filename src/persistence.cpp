@@ -76,6 +76,16 @@ bool Persistence::loadFile()
     }
 }
 
+void Persistence::saveDebugInfo(string text)
+{
+    std::ofstream debugFile("debug.txt");
+    if (debugFile.is_open())
+    {
+        debugFile << text;
+        debugFile.close();
+    }
+}
+
 int Persistence::getArrayLength()
 {
     int omittedCount = 0;

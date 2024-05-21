@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "game.hpp"
 #include "display.hpp"
 

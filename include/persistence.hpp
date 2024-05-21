@@ -15,6 +15,7 @@ public:
 
     bool saveFile();
     bool loadFile();
+    void saveDebugInfo(string);
 
 private:
     Board* board = nullptr;
